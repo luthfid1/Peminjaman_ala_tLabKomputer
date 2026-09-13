@@ -3,11 +3,13 @@
 require_once 'Models/Alat.php';
 require_once 'Models/Kategori.php';
 require_once 'Models/User.php';
+require_once 'Models/Peminjaman.php';
 
 class AdminController {
     private $alatModel;
     private $kategoriModel;
     private $userModel;
+    private $peminjamanModel;
 
     public function __construct() {
         // Proteksi hak akses Admin di level Controller
@@ -19,6 +21,7 @@ class AdminController {
         $this->alatModel = new Alat();
         $this->kategoriModel = new Kategori();
         $this->userModel = new User();
+        $this->peminjamanModel = new Peminjaman();
     }
 
     // ==========================================
@@ -325,7 +328,12 @@ class AdminController {
     // ==========================================
     public function log() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $searchPeminjaman = isset($_GET['search_peminjaman']) ? trim($_GET['search_peminjaman']) : '';
+
         $daftarLog = $this->userModel->getLogs($keyword);
+        $daftarPeminjamanAktif = $this->peminjamanModel->getPeminjamanAktif($searchPeminjaman);
+        $totalPeminjamanAktif = $this->peminjamanModel->countPeminjamanAktif();
+
         require_once 'Views/admin_log.php';
     }
 }
