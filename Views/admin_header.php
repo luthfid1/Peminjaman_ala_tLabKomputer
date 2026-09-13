@@ -55,7 +55,7 @@
             <div class="sidebar-mode-card">
                 <span class="mode-tag">MODE AKTIF</span>
                 <h2 class="mode-title">Admin</h2>
-                <p class="mode-desc">Kelola seluruh ekosistem SewaNada.</p>
+                <p class="mode-desc">Kelola seluruh ekosistem Naraband.</p>
             </div>
 
             <ul class="admin-sidebar-menu">
