@@ -13,14 +13,14 @@ class Peminjaman {
 
     // Ambil semua peminjaman yang masih aktif (menunggu, disetujui, dipinjam)
     public function getPeminjamanAktif($keyword = null) {
-        $query = "SELECT p.id, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
+        $query = "SELECT p.id_peminjaman, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
                          u.id_users, u.nama_lengkap, u.username, u.role,
-                         a.id AS alat_id, a.nama_alat, a.harga_sewa,
+                         a.id_alat, a.nama_alat, a.harga_sewa,
                          k.nama_kategori
                   FROM " . $this->table_name . " p
-                  LEFT JOIN users u ON p.user_id = u.id_users
-                  LEFT JOIN alat a ON p.alat_id = a.id
-                  LEFT JOIN kategori k ON a.kategori_id = k.id
+                  LEFT JOIN users u ON p.id_user = u.id_users
+                  LEFT JOIN alat a ON p.id_alat = a.id_alat
+                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
                   WHERE p.status IN ('menunggu', 'disetujui', 'dipinjam')";
 
         if (!empty($keyword)) {
