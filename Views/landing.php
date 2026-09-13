@@ -31,15 +31,8 @@
             </nav>
 
             <div class="nav-auth-actions">
-                <?php if (isset($_SESSION['user'])): ?>
-                    <a href="index.php?c=peminjaman&a=dashboard" class="nav-link-login">
-                        Halo, <?= htmlspecialchars($_SESSION['user']['nama_lengkap']) ?>
-                    </a>
-                    <a href="index.php?c=auth&a=logout" class="btn-nav-register">Keluar</a>
-                <?php else: ?>
-                    <a href="index.php?c=auth&a=login" class="nav-link-login">Masuk</a>
-                    <a href="index.php?c=auth&a=register" class="btn-nav-register">Daftar</a>
-                <?php endif; ?>
+                <a href="index.php?c=auth&a=login" class="nav-link-login">Masuk</a>
+                <a href="index.php?c=auth&a=register" class="btn-nav-register">Daftar</a>
             </div>
         </header>
 
