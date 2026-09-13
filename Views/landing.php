@@ -210,7 +210,7 @@
     <section class="section-about" id="tentang">
         <div class="about-container">
             <div>
-                <span class="about-tag">TENTANG SEWANADA</span>
+                <span class="about-tag">TENTANG NARA BAND</span>
                 <h2 class="about-title">
                     Satu sistem untuk alat yang <span class="highlight">lebih terawat.</span>
                 </h2>
