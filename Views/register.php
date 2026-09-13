@@ -53,6 +53,11 @@
                 <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Ulangi kata sandi" required>
             </div>
 
+            <div class="form-group">
+                <label for="alamat" class="form-label">Alamat</label>
+                <textarea id="alamat" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10, Jakarta" rows="3" required><?= htmlspecialchars($_POST['alamat'] ?? '') ?></textarea>
+            </div>
+
             <button type="submit" class="btn-auth-submit">Daftar</button>
         </form>
 

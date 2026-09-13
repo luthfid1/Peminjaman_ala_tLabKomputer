@@ -64,9 +64,9 @@ class User {
     }
 
     // Registrasi / Tambah user baru
-    public function register($nama_lengkap, $username, $password, $role = 'peminjam') {
-        $query = "INSERT INTO " . $this->table_name . " (nama_lengkap, username, password, role) 
-                  VALUES (:nama_lengkap, :username, :password, :role)";
+    public function register($nama_lengkap, $username, $password, $role = 'peminjam', $alamat = '') {
+        $query = "INSERT INTO " . $this->table_name . " (nama_lengkap, username, password, role, Alamat) 
+                  VALUES (:nama_lengkap, :username, :password, :role, :alamat)";
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -76,6 +76,7 @@ class User {
             $stmt->bindParam(':username', $username);
             $stmt->bindParam(':password', $hashedPassword);
             $stmt->bindParam(':role', $role);
+            $stmt->bindParam(':alamat', $alamat);
             return $stmt->execute();
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), '22001') !== false || strpos($e->getMessage(), 'Data too long') !== false) {
@@ -85,6 +86,7 @@ class User {
                 $stmt->bindParam(':username', $username);
                 $stmt->bindParam(':password', $md5Pass);
                 $stmt->bindParam(':role', $role);
+                $stmt->bindParam(':alamat', $alamat);
                 return $stmt->execute();
             }
             throw $e;
