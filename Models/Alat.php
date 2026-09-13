@@ -15,13 +15,13 @@ class Alat {
     public function getAllAlat($keyword = null) {
         $query = "SELECT a.*, k.nama_kategori, DATE_FORMAT(a.created_at, '%d %b %Y') as tgl_cek 
                   FROM " . $this->table_name . " a 
-                  LEFT JOIN kategori k ON a.kategori_id = k.id";
+                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori";
 
         if (!empty($keyword)) {
             $query .= " WHERE a.nama_alat LIKE :keyword OR k.nama_kategori LIKE :keyword";
         }
 
-        $query .= " ORDER BY a.id DESC";
+        $query .= " ORDER BY a.id_alat DESC";
 
         $stmt = $this->conn->prepare($query);
 
@@ -38,8 +38,8 @@ class Alat {
     public function getAlatById($id) {
         $query = "SELECT a.*, k.nama_kategori 
                   FROM " . $this->table_name . " a 
-                  LEFT JOIN kategori k ON a.kategori_id = k.id 
-                  WHERE a.id = :id 
+                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori 
+                  WHERE a.id_alat = :id 
                   LIMIT 1";
 
         $stmt = $this->conn->prepare($query);
@@ -51,7 +51,7 @@ class Alat {
 
     // Tambah alat baru
     public function createAlat($kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok) {
-        $query = "INSERT INTO " . $this->table_name . " (kategori_id, nama_alat, spesifikasi, harga_sewa, jumlah_stok) 
+        $query = "INSERT INTO " . $this->table_name . " (id_kategori, nama_alat, spesifikasi, harga_sewa, jumlah_stok) 
                   VALUES (:kategori_id, :nama_alat, :spesifikasi, :harga_sewa, :jumlah_stok)";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':kategori_id', $kategori_id, PDO::PARAM_INT);
@@ -65,9 +65,9 @@ class Alat {
     // Update data alat
     public function updateAlat($id, $kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok) {
         $query = "UPDATE " . $this->table_name . " 
-                  SET kategori_id = :kategori_id, nama_alat = :nama_alat, spesifikasi = :spesifikasi, 
+                  SET id_kategori = :kategori_id, nama_alat = :nama_alat, spesifikasi = :spesifikasi, 
                       harga_sewa = :harga_sewa, jumlah_stok = :jumlah_stok 
-                  WHERE id = :id";
+                  WHERE id_alat = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':kategori_id', $kategori_id, PDO::PARAM_INT);
         $stmt->bindParam(':nama_alat', $nama_alat);
@@ -80,7 +80,7 @@ class Alat {
 
     // Hapus data alat
     public function deleteAlat($id) {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
+        $query = "DELETE FROM " . $this->table_name . " WHERE id_alat = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();

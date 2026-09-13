@@ -17,7 +17,7 @@ class Kategori {
         if (!empty($keyword)) {
             $query .= " WHERE nama_kategori LIKE :keyword";
         }
-        $query .= " ORDER BY id DESC";
+        $query .= " ORDER BY id_kategori DESC";
 
         $stmt = $this->conn->prepare($query);
         if (!empty($keyword)) {
@@ -30,7 +30,7 @@ class Kategori {
 
     // Ambil kategori berdasarkan ID
     public function getKategoriById($id) {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE id = :id LIMIT 1";
+        $query = "SELECT * FROM " . $this->table_name . " WHERE id_kategori = :id LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -47,7 +47,7 @@ class Kategori {
 
     // Ubah kategori
     public function updateKategori($id, $nama_kategori) {
-        $query = "UPDATE " . $this->table_name . " SET nama_kategori = :nama_kategori WHERE id = :id";
+        $query = "UPDATE " . $this->table_name . " SET nama_kategori = :nama_kategori WHERE id_kategori = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':nama_kategori', $nama_kategori);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
