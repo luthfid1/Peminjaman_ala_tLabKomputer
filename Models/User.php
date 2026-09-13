@@ -146,7 +146,7 @@ class User {
     // Catat log aktivitas user ke tabel log_aktivitas
     public function recordLog($userId, $aktivitas) {
         try {
-            $query = "INSERT INTO log_aktivitas (user_id, aktivitas) VALUES (:user_id, :aktivitas)";
+            $query = "INSERT INTO log_aktivitas (id_user, aktivitas) VALUES (:user_id, :aktivitas)";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
             $stmt->bindParam(':aktivitas', $aktivitas);
@@ -160,13 +160,13 @@ class User {
     public function getLogs($keyword = null) {
         $query = "SELECT l.*, u.username, u.nama_lengkap, u.role, DATE_FORMAT(l.waktu, '%d %b %Y %H:%i') as waktu_format 
                   FROM log_aktivitas l 
-                  LEFT JOIN users u ON l.user_id = u.id_users";
+                  LEFT JOIN users u ON l.id_user = u.id_users";
 
         if (!empty($keyword)) {
             $query .= " WHERE l.aktivitas LIKE :keyword OR u.username LIKE :keyword OR u.nama_lengkap LIKE :keyword";
         }
 
-        $query .= " ORDER BY l.id DESC";
+        $query .= " ORDER BY l.id_log_aktifitas DESC";
 
         $stmt = $this->conn->prepare($query);
         if (!empty($keyword)) {

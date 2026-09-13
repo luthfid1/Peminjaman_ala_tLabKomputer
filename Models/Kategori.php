@@ -56,7 +56,7 @@ class Kategori {
 
     // Hapus kategori
     public function deleteKategori($id) {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
+        $query = "DELETE FROM " . $this->table_name . " WHERE id_kategori = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();

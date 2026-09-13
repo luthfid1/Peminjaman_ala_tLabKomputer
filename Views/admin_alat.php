@@ -88,7 +88,7 @@ require_once 'Views/admin_header.php';
                             <button type="button" class="btn-action-edit" onclick='editAlat(<?= json_encode($alat) ?>)'>
                                 Ubah
                             </button>
-                            <a href="index.php?c=admin&a=hapus_alat&id=<?= $alat['id'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus alat ini?')">
+                            <a href="index.php?c=admin&a=hapus_alat&id=<?= $alat['id_alat'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus alat ini?')">
                                 Hapus
                             </a>
                         </td>
@@ -117,7 +117,7 @@ require_once 'Views/admin_header.php';
                 <select name="kategori_id" class="form-control" required>
                     <option value="">-- Pilih Kategori --</option>
                     <?php foreach ($daftarKategori as $kat): ?>
-                        <option value="<?= $kat['id'] ?>"><?= htmlspecialchars($kat['nama_kategori']) ?></option>
+                    <option value="<?= $kat['id_kategori'] ?>"><?= htmlspecialchars($kat['nama_kategori']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -165,7 +165,7 @@ require_once 'Views/admin_header.php';
                 <select name="kategori_id" id="edit_kategori_id" class="form-control" required>
                     <option value="">-- Pilih Kategori --</option>
                     <?php foreach ($daftarKategori as $kat): ?>
-                        <option value="<?= $kat['id'] ?>"><?= htmlspecialchars($kat['nama_kategori']) ?></option>
+                    <option value="<?= $kat['id_kategori'] ?>"><?= htmlspecialchars($kat['nama_kategori']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -201,9 +201,9 @@ function closeModal(id) {
     document.getElementById(id).classList.remove('active');
 }
 function editAlat(data) {
-    document.getElementById('edit_id').value = data.id;
+    document.getElementById('edit_id').value = data.id_alat;
     document.getElementById('edit_nama_alat').value = data.nama_alat;
-    document.getElementById('edit_kategori_id').value = data.kategori_id;
+    document.getElementById('edit_kategori_id').value = data.id_kategori;
     document.getElementById('edit_harga_sewa').value = parseInt(data.harga_sewa);
     document.getElementById('edit_jumlah_stok').value = data.jumlah_stok;
     document.getElementById('edit_spesifikasi').value = data.spesifikasi || '';

@@ -74,7 +74,7 @@ require_once 'Views/admin_header.php';
                             <button type="button" class="btn-action-edit" onclick='editKategori(<?= json_encode($kat) ?>)'>
                                 Ubah
                             </button>
-                            <a href="index.php?c=admin&a=hapus_kategori&id=<?= $kat['id'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus kategori ini?')">
+                            <a href="index.php?c=admin&a=hapus_kategori&id=<?= $kat['id_kategori'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus kategori ini?')">
                                 Hapus
                             </a>
                         </td>
@@ -137,7 +137,7 @@ function closeModal(id) {
     document.getElementById(id).classList.remove('active');
 }
 function editKategori(data) {
-    document.getElementById('edit_kat_id').value = data.id;
+    document.getElementById('edit_kat_id').value = data.id_kategori;
     document.getElementById('edit_kat_nama').value = data.nama_kategori;
     openModal('modalUbahKategori');
 }
