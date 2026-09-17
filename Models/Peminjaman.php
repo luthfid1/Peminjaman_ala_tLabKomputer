@@ -14,7 +14,7 @@ class Peminjaman {
     // Ambil semua peminjaman yang masih aktif (menunggu, disetujui, dipinjam)
     public function getPeminjamanAktif($keyword = null) {
         $query = "SELECT p.id_peminjaman, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         u.id_users, u.nama_lengkap, u.username, u.role,
+                         u.id_users, u.nama_lengkap, u.username, u.Alamat, u.no_hp, u.role,
                          a.id_alat, a.nama_alat, a.harga_sewa,
                          k.nama_kategori
                   FROM " . $this->table_name . " p
@@ -24,7 +24,7 @@ class Peminjaman {
                   WHERE p.status IN ('menunggu', 'disetujui', 'dipinjam')";
 
         if (!empty($keyword)) {
-            $query .= " AND (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR a.nama_alat LIKE :keyword)";
+            $query .= " AND (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR u.no_hp LIKE :keyword OR a.nama_alat LIKE :keyword)";
         }
 
         $query .= " ORDER BY p.created_at DESC";
@@ -41,7 +41,7 @@ class Peminjaman {
     // Ambil SEMUA data peminjaman (untuk Kelola Peminjaman oleh Admin)
     public function getAllPeminjaman($keyword = null) {
         $query = "SELECT p.id_peminjaman, p.id_user, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         u.nama_lengkap, u.username, u.role,
+                         u.nama_lengkap, u.username, u.Alamat, u.no_hp, u.role,
                          a.nama_alat, a.harga_sewa,
                          k.nama_kategori
                   FROM " . $this->table_name . " p
@@ -50,7 +50,7 @@ class Peminjaman {
                   LEFT JOIN kategori k ON a.id_kategori = k.id_kategori";
 
         if (!empty($keyword)) {
-            $query .= " WHERE (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR a.nama_alat LIKE :keyword OR p.status LIKE :keyword)";
+            $query .= " WHERE (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR u.no_hp LIKE :keyword OR a.nama_alat LIKE :keyword OR p.status LIKE :keyword)";
         }
 
         $query .= " ORDER BY p.id_peminjaman DESC";

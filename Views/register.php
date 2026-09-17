@@ -54,6 +54,11 @@
             </div>
 
             <div class="form-group">
+                <label for="no_hp" class="form-label">No. HP / WhatsApp</label>
+                <input type="text" id="no_hp" name="no_hp" class="form-control" placeholder="Contoh: 081234567890" value="<?= htmlspecialchars($_POST['no_hp'] ?? '') ?>">
+            </div>
+
+            <div class="form-group">
                 <label for="alamat" class="form-label">Alamat</label>
                 <textarea id="alamat" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10, Jakarta" rows="3" required><?= htmlspecialchars($_POST['alamat'] ?? '') ?></textarea>
             </div>

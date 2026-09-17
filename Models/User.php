@@ -22,7 +22,7 @@ class User {
 
     // Mengambil user berdasarkan ID
     public function getUserById($id_users) {
-        $query = "SELECT id_users, username, nama_lengkap, role FROM " . $this->table_name . " WHERE id_users = :id_users LIMIT 1";
+        $query = "SELECT id_users, username, nama_lengkap, Alamat, no_hp, role FROM " . $this->table_name . " WHERE id_users = :id_users LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
         $stmt->execute();
@@ -31,9 +31,9 @@ class User {
 
     // Mengambil semua user dengan pencarian
     public function getAllUsers($keyword = null) {
-        $query = "SELECT id_users, username, nama_lengkap, role FROM " . $this->table_name;
+        $query = "SELECT id_users, username, nama_lengkap, Alamat, no_hp, role FROM " . $this->table_name;
         if (!empty($keyword)) {
-            $query .= " WHERE username LIKE :keyword OR nama_lengkap LIKE :keyword OR role LIKE :keyword";
+            $query .= " WHERE username LIKE :keyword OR nama_lengkap LIKE :keyword OR no_hp LIKE :keyword OR role LIKE :keyword";
         }
         $query .= " ORDER BY id_users DESC";
 
@@ -64,9 +64,9 @@ class User {
     }
 
     // Registrasi / Tambah user baru
-    public function register($nama_lengkap, $username, $password, $role = 'peminjam', $alamat = '') {
-        $query = "INSERT INTO " . $this->table_name . " (nama_lengkap, username, password, role, Alamat) 
-                  VALUES (:nama_lengkap, :username, :password, :role, :alamat)";
+    public function register($nama_lengkap, $username, $password, $role = 'peminjam', $alamat = '', $no_hp = '') {
+        $query = "INSERT INTO " . $this->table_name . " (nama_lengkap, username, password, role, Alamat, no_hp) 
+                  VALUES (:nama_lengkap, :username, :password, :role, :alamat, :no_hp)";
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -77,6 +77,7 @@ class User {
             $stmt->bindParam(':password', $hashedPassword);
             $stmt->bindParam(':role', $role);
             $stmt->bindParam(':alamat', $alamat);
+            $stmt->bindParam(':no_hp', $no_hp);
             return $stmt->execute();
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), '22001') !== false || strpos($e->getMessage(), 'Data too long') !== false) {
@@ -87,6 +88,7 @@ class User {
                 $stmt->bindParam(':password', $md5Pass);
                 $stmt->bindParam(':role', $role);
                 $stmt->bindParam(':alamat', $alamat);
+                $stmt->bindParam(':no_hp', $no_hp);
                 return $stmt->execute();
             }
             throw $e;
@@ -94,17 +96,22 @@ class User {
     }
 
     // Update user
-    public function updateUser($id_users, $nama_lengkap, $username, $role, $password = null) {
+    public function updateUser($id_users, $nama_lengkap, $username, $role, $password = null, $alamat = null, $no_hp = null) {
         if (!empty($password)) {
             $query = "UPDATE " . $this->table_name . " 
-                      SET nama_lengkap = :nama_lengkap, username = :username, password = :password, role = :role 
-                      WHERE id_users = :id_users";
+                      SET nama_lengkap = :nama_lengkap, username = :username, password = :password, role = :role";
+            if ($alamat !== null) $query .= ", Alamat = :alamat";
+            if ($no_hp !== null) $query .= ", no_hp = :no_hp";
+            $query .= " WHERE id_users = :id_users";
+
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nama_lengkap', $nama_lengkap);
             $stmt->bindParam(':username', $username);
             $stmt->bindParam(':password', $hashedPassword);
             $stmt->bindParam(':role', $role);
+            if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
+            if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
             $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
 
             try {
@@ -117,6 +124,8 @@ class User {
                     $stmt->bindParam(':username', $username);
                     $stmt->bindParam(':password', $md5Pass);
                     $stmt->bindParam(':role', $role);
+                    if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
+                    if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
                     $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
                     return $stmt->execute();
                 }
@@ -124,12 +133,17 @@ class User {
             }
         } else {
             $query = "UPDATE " . $this->table_name . " 
-                      SET nama_lengkap = :nama_lengkap, username = :username, role = :role 
-                      WHERE id_users = :id_users";
+                      SET nama_lengkap = :nama_lengkap, username = :username, role = :role";
+            if ($alamat !== null) $query .= ", Alamat = :alamat";
+            if ($no_hp !== null) $query .= ", no_hp = :no_hp";
+            $query .= " WHERE id_users = :id_users";
+
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nama_lengkap', $nama_lengkap);
             $stmt->bindParam(':username', $username);
             $stmt->bindParam(':role', $role);
+            if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
+            if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
             $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
             return $stmt->execute();
         }

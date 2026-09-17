@@ -253,6 +253,8 @@ class AdminController {
             $username     = trim($_POST['username'] ?? '');
             $password     = trim($_POST['password'] ?? '');
             $role         = trim($_POST['role'] ?? 'peminjam');
+            $alamat       = trim($_POST['alamat'] ?? '');
+            $no_hp        = trim($_POST['no_hp'] ?? '');
 
             if (!empty($nama_lengkap) && !empty($username) && !empty($password)) {
                 if ($this->userModel->isUsernameExists($username)) {
@@ -261,7 +263,7 @@ class AdminController {
                 }
 
                 try {
-                    $this->userModel->register($nama_lengkap, $username, $password, $role);
+                    $this->userModel->register($nama_lengkap, $username, $password, $role, $alamat, $no_hp);
                     $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menambahkan pengguna baru: ' . $username . " ($role)");
                     header('Location: index.php?c=admin&a=pengguna&status=added');
                     exit;
@@ -282,6 +284,8 @@ class AdminController {
             $username     = trim($_POST['username'] ?? '');
             $password     = trim($_POST['password'] ?? '');
             $role         = trim($_POST['role'] ?? 'peminjam');
+            $alamat       = trim($_POST['alamat'] ?? '');
+            $no_hp        = trim($_POST['no_hp'] ?? '');
 
             if ($id_users > 0 && !empty($nama_lengkap) && !empty($username)) {
                 if ($this->userModel->isUsernameExists($username, $id_users)) {
@@ -290,7 +294,7 @@ class AdminController {
                 }
 
                 try {
-                    $this->userModel->updateUser($id_users, $nama_lengkap, $username, $role, !empty($password) ? $password : null);
+                    $this->userModel->updateUser($id_users, $nama_lengkap, $username, $role, !empty($password) ? $password : null, $alamat, $no_hp);
                     $this->userModel->recordLog($_SESSION['user']['id_users'], 'Memperbarui data pengguna: ' . $username);
                     header('Location: index.php?c=admin&a=pengguna&status=updated');
                     exit;
@@ -364,6 +368,7 @@ class AdminController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
             $username        = trim($_POST['username'] ?? '');
+            $no_hp           = trim($_POST['no_hp'] ?? '');
             $alamat          = trim($_POST['alamat'] ?? '');
             $id_alat         = (int)($_POST['id_alat'] ?? 0);
             $jumlah          = (int)($_POST['jumlah'] ?? 1);
@@ -384,14 +389,12 @@ class AdminController {
                     $user = $this->userModel->getUserByUsername($username);
                     if ($user) {
                         $id_user = $user['id_users'];
-                        // Update nama jika ada perubahan
-                        if (!empty($nama_lengkap) && $nama_lengkap !== $user['nama_lengkap']) {
-                            $this->userModel->updateUser($id_user, $nama_lengkap, $username, $user['role']);
-                        }
+                        // Update nama, alamat, no_hp jika ada
+                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $user['role'], null, $alamat, $no_hp);
                     } else {
                         // Jika belum ada, daftarkan otomatis peminjam offline ke tabel users
                         $defaultPassword = 'offline_' . time();
-                        $this->userModel->register($nama_lengkap, $username, $defaultPassword, 'peminjam', $alamat);
+                        $this->userModel->register($nama_lengkap, $username, $defaultPassword, 'peminjam', $alamat, $no_hp);
                         $newUser = $this->userModel->getUserByUsername($username);
                         $id_user = $newUser ? $newUser['id_users'] : 0;
                     }
@@ -422,6 +425,8 @@ class AdminController {
             $id_user         = (int)($_POST['id_user'] ?? 0);
             $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
             $username        = trim($_POST['username'] ?? '');
+            $no_hp           = trim($_POST['no_hp'] ?? '');
+            $alamat          = trim($_POST['alamat'] ?? '');
             $id_alat         = (int)($_POST['id_alat'] ?? 0);
             $jumlah          = (int)($_POST['jumlah'] ?? 1);
             $tanggal_pinjam  = trim($_POST['tanggal_pinjam'] ?? '');
@@ -434,7 +439,7 @@ class AdminController {
                     if ($id_user > 0 && !empty($nama_lengkap) && !empty($username)) {
                         $existingUser = $this->userModel->getUserById($id_user);
                         $role = $existingUser ? $existingUser['role'] : 'peminjam';
-                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $role);
+                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $role, null, $alamat, $no_hp);
                     }
 
                     $this->peminjamanModel->updatePeminjaman($id_peminjaman, $id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status);

@@ -54,6 +54,8 @@ require_once 'Views/admin_header.php';
                 <th>No</th>
                 <th>Nama Lengkap</th>
                 <th>Username</th>
+                <th>No. HP</th>
+                <th>Alamat</th>
                 <th>Hak Akses (Role)</th>
                 <th style="text-align: right;">Aksi</th>
             </tr>
@@ -61,7 +63,7 @@ require_once 'Views/admin_header.php';
         <tbody>
             <?php if (empty($daftarPengguna)): ?>
                 <tr>
-                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
                         Belum ada data pengguna.
                     </td>
                 </tr>
@@ -71,6 +73,8 @@ require_once 'Views/admin_header.php';
                         <td><?= $no++ ?></td>
                         <td class="col-instrument-name"><?= htmlspecialchars($u['nama_lengkap']) ?></td>
                         <td><?= htmlspecialchars($u['username']) ?></td>
+                        <td><?= htmlspecialchars($u['no_hp'] ?? '-') ?></td>
+                        <td><?= htmlspecialchars($u['Alamat'] ?? '-') ?></td>
                         <td>
                             <span class="badge-role badge-role-<?= htmlspecialchars($u['role']) ?>">
                                 <?= ucfirst(htmlspecialchars($u['role'])) ?>
@@ -111,18 +115,30 @@ require_once 'Views/admin_header.php';
                 <input type="text" name="username" class="form-control" placeholder="Pilih username unik" required>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Kata Sandi</label>
-                <input type="password" name="password" class="form-control" placeholder="Minimal 5 karakter" required>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label">No. HP / WhatsApp</label>
+                    <input type="text" name="no_hp" class="form-control" placeholder="Contoh: 081234567890">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hak Akses (Role)</label>
+                    <select name="role" class="form-control" required>
+                        <option value="peminjam">Peminjam (Siswa/Anggota)</option>
+                        <option value="petugas">Petugas</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Hak Akses (Role)</label>
-                <select name="role" class="form-control" required>
-                    <option value="peminjam">Peminjam (Siswa/Anggota)</option>
-                    <option value="petugas">Petugas</option>
-                    <option value="admin">Administrator</option>
-                </select>
+                <label class="form-label">Alamat</label>
+                <input type="text" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kata Sandi</label>
+                <input type="password" name="password" class="form-control" placeholder="Minimal 5 karakter" required>
             </div>
 
             <div class="modal-footer">
@@ -153,13 +169,25 @@ require_once 'Views/admin_header.php';
                 <input type="text" name="username" id="edit_user_username" class="form-control" required>
             </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label class="form-label">No. HP / WhatsApp</label>
+                    <input type="text" name="no_hp" id="edit_user_nohp" class="form-control" placeholder="Contoh: 081234567890">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hak Akses (Role)</label>
+                    <select name="role" id="edit_user_role" class="form-control" required>
+                        <option value="peminjam">Peminjam (Siswa/Anggota)</option>
+                        <option value="petugas">Petugas</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
-                <label class="form-label">Hak Akses (Role)</label>
-                <select name="role" id="edit_user_role" class="form-control" required>
-                    <option value="peminjam">Peminjam (Siswa/Anggota)</option>
-                    <option value="petugas">Petugas</option>
-                    <option value="admin">Administrator</option>
-                </select>
+                <label class="form-label">Alamat</label>
+                <input type="text" name="alamat" id="edit_user_alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
             </div>
 
             <div class="form-group">
@@ -186,6 +214,8 @@ function editUser(data) {
     document.getElementById('edit_user_id').value = data.id_users;
     document.getElementById('edit_user_nama').value = data.nama_lengkap;
     document.getElementById('edit_user_username').value = data.username;
+    document.getElementById('edit_user_nohp').value = data.no_hp || '';
+    document.getElementById('edit_user_alamat').value = data.Alamat || '';
     document.getElementById('edit_user_role').value = data.role;
     openModal('modalUbahUser');
 }

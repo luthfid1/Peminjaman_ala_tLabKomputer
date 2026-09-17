@@ -86,6 +86,7 @@ class AuthController {
             $password         = trim($_POST['password'] ?? '');
             $confirm_password = trim($_POST['confirm_password'] ?? '');
             $alamat           = trim($_POST['alamat'] ?? '');
+            $no_hp            = trim($_POST['no_hp'] ?? '');
 
             if (empty($nama_lengkap) || empty($username) || empty($password) || empty($confirm_password) || empty($alamat)) {
                 $error = 'Semua bidang formulir wajib diisi!';
@@ -99,7 +100,7 @@ class AuthController {
                 $error = 'Username sudah digunakan, silakan pilih username lain!';
             } else {
                 try {
-                    $success = $this->userModel->register($nama_lengkap, $username, $password, 'peminjam', $alamat);
+                    $success = $this->userModel->register($nama_lengkap, $username, $password, 'peminjam', $alamat, $no_hp);
                     if ($success) {
                         header('Location: index.php?c=auth&a=login&status=registered');
                         exit;

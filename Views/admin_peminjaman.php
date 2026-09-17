@@ -44,7 +44,7 @@ require_once 'Views/admin_header.php';
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="text" name="search" placeholder="Cari nama peminjam, alat, atau status..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <input type="text" name="search" placeholder="Cari peminjam, kontak, atau alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
         </form>
     </div>
 
@@ -52,7 +52,7 @@ require_once 'Views/admin_header.php';
         <thead>
             <tr>
                 <th>No</th>
-                <th>Peminjam (Nama & Data)</th>
+                <th>Peminjam & Kontak</th>
                 <th>Alat Musik</th>
                 <th>Jumlah</th>
                 <th>Tgl Pinjam</th>
@@ -97,6 +97,9 @@ require_once 'Views/admin_header.php';
                             <?= htmlspecialchars($p['nama_lengkap'] ?? 'User #' . $p['id_user']) ?>
                             <div style="font-size: 12px; font-weight: 400; color: var(--text-muted);">
                                 @<?= htmlspecialchars($p['username'] ?? '-') ?>
+                                <?php if (!empty($p['no_hp'])): ?>
+                                    &bull; 📞 <?= htmlspecialchars($p['no_hp']) ?>
+                                <?php endif; ?>
                             </div>
                         </td>
                         <td class="col-instrument-name">
@@ -163,12 +166,17 @@ require_once 'Views/admin_header.php';
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div class="form-group">
                         <label class="form-label">Username / Identitas <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="username" class="form-control" placeholder="Contoh: budi_off / NIS / No.HP" required>
+                        <input type="text" name="username" class="form-control" placeholder="Contoh: budi_off / NIS" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Alamat</label>
-                        <input type="text" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
+                        <label class="form-label">No. HP / WhatsApp <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="no_hp" class="form-control" placeholder="Contoh: 081234567890" required>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alamat</label>
+                    <input type="text" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
                 </div>
             </div>
 
@@ -248,9 +256,21 @@ require_once 'Views/admin_header.php';
                     <input type="text" name="nama_lengkap" id="edit_nama_lengkap" class="form-control" required>
                 </div>
 
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Username / Identitas <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="username" id="edit_username" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">No. HP / WhatsApp</label>
+                        <input type="text" name="no_hp" id="edit_no_hp" class="form-control" placeholder="Contoh: 081234567890">
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">Username / Identitas <span style="color:#ef4444;">*</span></label>
-                    <input type="text" name="username" id="edit_username" class="form-control" required>
+                    <label class="form-label">Alamat</label>
+                    <input type="text" name="alamat" id="edit_alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
                 </div>
             </div>
 
@@ -315,6 +335,8 @@ function editPeminjaman(data) {
     document.getElementById('edit_id_user').value = data.id_user;
     document.getElementById('edit_nama_lengkap').value = data.nama_lengkap || '';
     document.getElementById('edit_username').value = data.username || '';
+    document.getElementById('edit_no_hp').value = data.no_hp || '';
+    document.getElementById('edit_alamat').value = data.Alamat || '';
     document.getElementById('edit_id_alat').value = data.id_alat;
     document.getElementById('edit_jumlah').value = data.jumlah;
     document.getElementById('edit_tanggal_pinjam').value = data.tanggal_pinjam;
