@@ -336,4 +336,135 @@ class AdminController {
 
         require_once 'Views/admin_log.php';
     }
+
+    // ==========================================
+    // CRUD DATA PEMINJAMAN (OFFLINE & ONLINE)
+    // ==========================================
+    public function peminjaman() {
+        $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $message = '';
+        $error = '';
+
+        if (isset($_GET['status'])) {
+            if ($_GET['status'] === 'added') $message = 'Data peminjaman berhasil dicatat.';
+            if ($_GET['status'] === 'updated') $message = 'Data peminjaman berhasil diperbarui.';
+            if ($_GET['status'] === 'deleted') $message = 'Data peminjaman berhasil dihapus.';
+            if ($_GET['status'] === 'stok_kurang') $error = 'Stok alat tidak mencukupi untuk jumlah yang dipinjam!';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan pada data peminjaman.';
+        }
+
+        $daftarPeminjaman = $this->peminjamanModel->getAllPeminjaman($keyword);
+        $daftarAlat = $this->alatModel->getAllAlat();
+        $daftarUser = $this->userModel->getAllUsers();
+
+        require_once 'Views/admin_peminjaman.php';
+    }
+
+    public function tambah_peminjaman() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
+            $username        = trim($_POST['username'] ?? '');
+            $alamat          = trim($_POST['alamat'] ?? '');
+            $id_alat         = (int)($_POST['id_alat'] ?? 0);
+            $jumlah          = (int)($_POST['jumlah'] ?? 1);
+            $tanggal_pinjam  = trim($_POST['tanggal_pinjam'] ?? date('Y-m-d'));
+            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? '');
+            $status          = trim($_POST['status'] ?? 'dipinjam');
+
+            if (!empty($nama_lengkap) && !empty($username) && $id_alat > 0 && $jumlah > 0 && !empty($tanggal_kembali)) {
+                // Cek stok alat jika statusnya dipinjam
+                $alat = $this->alatModel->getAlatById($id_alat);
+                if ($status === 'dipinjam' && $alat && $alat['jumlah_stok'] < $jumlah) {
+                    header('Location: index.php?c=admin&a=peminjaman&status=stok_kurang');
+                    exit;
+                }
+
+                try {
+                    // Cek apakah user dengan username ini sudah ada di tabel users
+                    $user = $this->userModel->getUserByUsername($username);
+                    if ($user) {
+                        $id_user = $user['id_users'];
+                        // Update nama jika ada perubahan
+                        if (!empty($nama_lengkap) && $nama_lengkap !== $user['nama_lengkap']) {
+                            $this->userModel->updateUser($id_user, $nama_lengkap, $username, $user['role']);
+                        }
+                    } else {
+                        // Jika belum ada, daftarkan otomatis peminjam offline ke tabel users
+                        $defaultPassword = 'offline_' . time();
+                        $this->userModel->register($nama_lengkap, $username, $defaultPassword, 'peminjam', $alamat);
+                        $newUser = $this->userModel->getUserByUsername($username);
+                        $id_user = $newUser ? $newUser['id_users'] : 0;
+                    }
+
+                    if ($id_user > 0) {
+                        $this->peminjamanModel->createPeminjaman($id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status);
+                        $namaAlat = $alat ? $alat['nama_alat'] : "ID $id_alat";
+                        $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mencatat peminjaman offline: ' . $namaAlat . ' untuk ' . $nama_lengkap);
+                        header('Location: index.php?c=admin&a=peminjaman&status=added');
+                        exit;
+                    } else {
+                        header('Location: index.php?c=admin&a=peminjaman&status=error');
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    header('Location: index.php?c=admin&a=peminjaman&status=error');
+                    exit;
+                }
+            }
+        }
+        header('Location: index.php?c=admin&a=peminjaman');
+        exit;
+    }
+
+    public function ubah_peminjaman() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_peminjaman   = (int)($_POST['id_peminjaman'] ?? 0);
+            $id_user         = (int)($_POST['id_user'] ?? 0);
+            $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
+            $username        = trim($_POST['username'] ?? '');
+            $id_alat         = (int)($_POST['id_alat'] ?? 0);
+            $jumlah          = (int)($_POST['jumlah'] ?? 1);
+            $tanggal_pinjam  = trim($_POST['tanggal_pinjam'] ?? '');
+            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? '');
+            $status          = trim($_POST['status'] ?? 'dipinjam');
+
+            if ($id_peminjaman > 0 && $id_alat > 0 && $jumlah > 0 && !empty($tanggal_kembali)) {
+                try {
+                    // Update data peminjam di tabel user jika ada
+                    if ($id_user > 0 && !empty($nama_lengkap) && !empty($username)) {
+                        $existingUser = $this->userModel->getUserById($id_user);
+                        $role = $existingUser ? $existingUser['role'] : 'peminjam';
+                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $role);
+                    }
+
+                    $this->peminjamanModel->updatePeminjaman($id_peminjaman, $id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status);
+                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mengubah data peminjaman ID #' . $id_peminjaman . ' (Status: ' . $status . ')');
+                    header('Location: index.php?c=admin&a=peminjaman&status=updated');
+                    exit;
+                } catch (Exception $e) {
+                    header('Location: index.php?c=admin&a=peminjaman&status=error');
+                    exit;
+                }
+            }
+        }
+        header('Location: index.php?c=admin&a=peminjaman');
+        exit;
+    }
+
+    public function hapus_peminjaman() {
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $this->peminjamanModel->deletePeminjaman($id);
+                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus data peminjaman ID #' . $id);
+                header('Location: index.php?c=admin&a=peminjaman&status=deleted');
+                exit;
+            } catch (Exception $e) {
+                header('Location: index.php?c=admin&a=peminjaman&status=error');
+                exit;
+            }
+        }
+        header('Location: index.php?c=admin&a=peminjaman');
+        exit;
+    }
 }
