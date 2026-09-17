@@ -210,6 +210,47 @@ class Pengembalian {
             $stmtStok->execute();
         }
 
-        return $result;
+    // Ambil data riwayat pengembalian khusus milik satu user (Peminjam)
+    public function getPengembalianByUser($id_user, $keyword = null) {
+        $query = "SELECT pg.*, 
+                         p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status as status_peminjaman,
+                         a.id_alat, a.nama_alat, a.harga_sewa, a.foto,
+                         k.nama_kategori
+                  FROM " . $this->table_name . " pg
+                  INNER JOIN peminjaman p ON pg.id_peminjaman = p.id_peminjaman
+                  LEFT JOIN alat a ON p.id_alat = a.id_alat
+                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
+                  WHERE p.id_user = :id_user";
+
+        if (!empty($keyword)) {
+            $query .= " AND (a.nama_alat LIKE :keyword OR k.nama_kategori LIKE :keyword OR pg.keterangan LIKE :keyword)";
+        }
+
+        $query .= " ORDER BY pg.id_pengembalian DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+        if (!empty($keyword)) {
+            $kw = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $kw);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Total denda akumulasi milik satu user
+    public function getTotalDendaByUser($id_user) {
+        try {
+            $query = "SELECT SUM(pg.denda) 
+                      FROM " . $this->table_name . " pg
+                      INNER JOIN peminjaman p ON pg.id_peminjaman = p.id_peminjaman
+                      WHERE p.id_user = :id_user";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+            $stmt->execute();
+            return (float)($stmt->fetchColumn() ?? 0);
+        } catch (Exception $e) {
+            return 0;
+        }
     }
 }

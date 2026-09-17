@@ -14,8 +14,8 @@ class AdminController {
     private $pengembalianModel;
 
     public function __construct() {
-        // Proteksi hak akses Admin di level Controller
-        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+        $role = strtolower(trim($_SESSION['user']['role'] ?? ''));
+        if (!isset($_SESSION['user']) || $role !== 'admin') {
             header('Location: index.php?c=auth&a=login');
             exit;
         }

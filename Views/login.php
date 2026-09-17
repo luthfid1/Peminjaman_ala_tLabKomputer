@@ -37,6 +37,14 @@
             </div>
         <?php endif; ?>
 
+        <!-- ACTIVE SESSION NOTICE -->
+        <?php if (isset($_SESSION['user'])): ?>
+            <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; font-size: 12px; margin-bottom: 16px; color: #334155; display: flex; justify-content: space-between; align-items: center;">
+                <span>Sesi aktif: <strong><?= htmlspecialchars($_SESSION['user']['nama_lengkap']) ?></strong> (<?= htmlspecialchars($_SESSION['user']['role']) ?>)</span>
+                <a href="index.php?c=auth&a=logout" style="color: #b91c1c; font-weight: 700; text-decoration: none;">Keluar &rarr;</a>
+            </div>
+        <?php endif; ?>
+
         <!-- FORM LOGIN -->
         <form method="POST" action="index.php?c=auth&a=login">
             <div class="form-group">
@@ -52,7 +60,13 @@
             <button type="submit" class="btn-auth-submit">Masuk</button>
         </form>
 
-        <div class="auth-footer">
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-top: 16px; font-size: 11px; color: #64748b; text-align: left; line-height: 1.5;">
+            <strong>💡 Akun Pengujian Siap Pakai:</strong><br>
+            &bull; <strong>Admin:</strong> <code>admin</code> / <code>admin123</code><br>
+            &bull; <strong>Peminjam:</strong> <code>peminjam</code> / <code>peminjam123</code> (atau akun baru yang Anda daftarkan)
+        </div>
+
+        <div class="auth-footer" style="margin-top: 16px;">
             Belum punya akun? <a href="index.php?c=auth&a=register">Daftar sekarang</a>
         </div>
 

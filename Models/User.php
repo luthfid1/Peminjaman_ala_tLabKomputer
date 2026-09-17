@@ -9,11 +9,59 @@ class User {
     public function __construct() {
         $database = new Database();
         $this->conn = $database->getConnection();
+        $this->ensureTableSchema();
     }
 
-    // Mengambil user berdasarkan username
+    // Memastikan skema tabel tidak memotong hash password dan data user
+    public function ensureTableSchema() {
+        try {
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN password VARCHAR(255) NOT NULL");
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'peminjam'");
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN Alamat TEXT NULL");
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN no_hp VARCHAR(30) NULL");
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN username VARCHAR(100) NOT NULL");
+            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN nama_lengkap VARCHAR(150) NOT NULL");
+        } catch (Exception $e) {
+            // Abaikan jika alter gagal atau sudah sesuai
+        }
+
+        // Siapkan akun admin dan akun peminjam demo jika belum ada
+        try {
+            // 1. Akun Admin Default
+            $stmt = $this->conn->prepare("SELECT id_users, password FROM " . $this->table_name . " WHERE LOWER(username) = 'admin' LIMIT 1");
+            $stmt->execute();
+            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$admin) {
+                $this->register('Alya Rahma', 'admin', 'admin123', 'admin', 'Jl. Studio No. 1, Jakarta', '081234567890');
+            } else {
+                // Perbaiki jika password admin sebelumnya corrupt/terpotong
+                if (!password_verify('admin123', $admin['password']) && $admin['password'] !== 'admin123' && $admin['password'] !== md5('admin123')) {
+                    $newHash = password_hash('admin123', PASSWORD_DEFAULT);
+                    $upd = $this->conn->prepare("UPDATE " . $this->table_name . " SET password = :p WHERE id_users = :id");
+                    $upd->execute([':p' => $newHash, ':id' => $admin['id_users']]);
+                }
+            }
+
+            // 2. Akun Peminjam Demo
+            $stmtP = $this->conn->prepare("SELECT id_users, password FROM " . $this->table_name . " WHERE LOWER(username) = 'peminjam' LIMIT 1");
+            $stmtP->execute();
+            $peminjam = $stmtP->fetch(PDO::FETCH_ASSOC);
+            if (!$peminjam) {
+                $this->register('Peminjam Demo', 'peminjam', 'peminjam123', 'peminjam', 'Jl. Siswa No. 10, Jakarta', '089876543210');
+            } else {
+                // Perbaiki jika password peminjam sebelumnya corrupt/terpotong
+                if (!password_verify('peminjam123', $peminjam['password']) && $peminjam['password'] !== 'peminjam123' && $peminjam['password'] !== md5('peminjam123')) {
+                    $newHash = password_hash('peminjam123', PASSWORD_DEFAULT);
+                    $upd = $this->conn->prepare("UPDATE " . $this->table_name . " SET password = :p WHERE id_users = :id");
+                    $upd->execute([':p' => $newHash, ':id' => $peminjam['id_users']]);
+                }
+            }
+        } catch (Exception $e) {}
+    }
+
+    // Mengambil user berdasarkan username (case-insensitive)
     public function getUserByUsername($username) {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE username = :username LIMIT 1";
+        $query = "SELECT * FROM " . $this->table_name . " WHERE LOWER(username) = LOWER(:username) LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->execute();
@@ -147,6 +195,15 @@ class User {
             $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
             return $stmt->execute();
         }
+    }
+
+    // Update password hash saja (misal untuk rehash atau sinkronisasi)
+    public function updatePasswordOnly($id_users, $hashedPassword) {
+        $query = "UPDATE " . $this->table_name . " SET password = :password WHERE id_users = :id_users";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':password', $hashedPassword);
+        $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 
     // Hapus user

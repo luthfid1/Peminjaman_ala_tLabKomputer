@@ -49,7 +49,7 @@
                 </p>
 
                 <div class="hero-actions">
-                    <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjaman&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="btn-primary-action">
+                    <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjam&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="btn-primary-action">
                         Mulai peminjaman &rarr;
                     </a>
                     <a href="#keunggulan" class="btn-secondary-action">
@@ -168,7 +168,7 @@
                 </div>
                 <h3>Alat lengkap</h3>
                 <p>Gitar, bass, drum, keyboard, dan perlengkapan audio dalam satu daftar.</p>
-                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjaman&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
+                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjam&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
                     Mulai sekarang &rarr;
                 </a>
             </div>
@@ -183,7 +183,7 @@
                 </div>
                 <h3>Cepat & mudah</h3>
                 <p>Ajukan peminjaman dan pantau statusnya tanpa proses yang berbelit.</p>
-                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjaman&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
+                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjam&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
                     Mulai sekarang &rarr;
                 </a>
             </div>
@@ -197,7 +197,7 @@
                 </div>
                 <h3>Terstruktur</h3>
                 <p>Riwayat, persetujuan, pengembalian, dan denda tercatat aman.</p>
-                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjaman&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
+                <a href="<?= isset($_SESSION['user']) ? 'index.php?c=peminjam&a=dashboard' : 'index.php?c=auth&a=login' ?>" class="feature-link">
                     Mulai sekarang &rarr;
                 </a>
             </div>

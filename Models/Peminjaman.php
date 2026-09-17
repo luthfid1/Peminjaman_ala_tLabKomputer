@@ -188,6 +188,61 @@ class Peminjaman {
         } catch (Exception $e) {}
     }
 
+    // Ambil riwayat peminjaman khusus milik satu user (Peminjam)
+    public function getPeminjamanByUser($id_user, $keyword = null) {
+        $query = "SELECT p.id_peminjaman, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
+                         a.nama_alat, a.harga_sewa, a.foto, a.kondisi,
+                         k.nama_kategori
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN alat a ON p.id_alat = a.id_alat
+                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
+                  WHERE p.id_user = :id_user";
+
+        if (!empty($keyword)) {
+            $query .= " AND (a.nama_alat LIKE :keyword OR k.nama_kategori LIKE :keyword OR p.status LIKE :keyword)";
+        }
+
+        $query .= " ORDER BY p.id_peminjaman DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+        if (!empty($keyword)) {
+            $kw = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $kw);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Hitung total peminjaman user berdasarkan status tertentu
+    public function countUserPeminjamanByStatus($id_user, $status = null) {
+        try {
+            if ($status) {
+                $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE id_user = :id_user AND status = :status";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+                $stmt->bindParam(':status', $status);
+            } else {
+                $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE id_user = :id_user";
+                $stmt = $this->conn->prepare($query);
+                $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            return (int) $stmt->fetchColumn();
+        } catch (Exception $e) {
+            return 0;
+        }
+    }
+
+    // Batalkan pengajuan peminjaman oleh peminjam (hanya jika masih 'menunggu')
+    public function batalkanPeminjamanByUser($id_peminjaman, $id_user) {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id_peminjaman = :id AND id_user = :id_user AND status = 'menunggu'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id_peminjaman, PDO::PARAM_INT);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
     // Hitung total peminjaman aktif
     public function countPeminjamanAktif() {
         try {
