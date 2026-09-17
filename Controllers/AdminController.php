@@ -4,12 +4,14 @@ require_once 'Models/Alat.php';
 require_once 'Models/Kategori.php';
 require_once 'Models/User.php';
 require_once 'Models/Peminjaman.php';
+require_once 'Models/Pengembalian.php';
 
 class AdminController {
     private $alatModel;
     private $kategoriModel;
     private $userModel;
     private $peminjamanModel;
+    private $pengembalianModel;
 
     public function __construct() {
         // Proteksi hak akses Admin di level Controller
@@ -22,6 +24,7 @@ class AdminController {
         $this->kategoriModel = new Kategori();
         $this->userModel = new User();
         $this->peminjamanModel = new Peminjaman();
+        $this->pengembalianModel = new Pengembalian();
     }
 
     // ==========================================
@@ -470,6 +473,95 @@ class AdminController {
             }
         }
         header('Location: index.php?c=admin&a=peminjaman');
+        exit;
+    }
+
+    // ==========================================
+    // CRUD DATA PENGEMBALIAN (OFFLINE & ONLINE)
+    // ==========================================
+    public function pengembalian() {
+        $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $message = '';
+        $error = '';
+
+        if (isset($_GET['status'])) {
+            if ($_GET['status'] === 'added') $message = 'Data pengembalian alat berhasil dicatat.';
+            if ($_GET['status'] === 'updated') $message = 'Data pengembalian berhasil diperbarui.';
+            if ($_GET['status'] === 'deleted') $message = 'Data pengembalian berhasil dihapus.';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses data pengembalian.';
+        }
+
+        $daftarPengembalian = $this->pengembalianModel->getAllPengembalian($keyword);
+        $peminjamanAktif = $this->pengembalianModel->getPeminjamanSiapKembali();
+
+        require_once 'Views/admin_pengembalian.php';
+    }
+
+    public function tambah_pengembalian() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_peminjaman        = (int)($_POST['id_peminjaman'] ?? 0);
+            $tanggal_pengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
+            $denda_tambahan       = (float)($_POST['denda_tambahan'] ?? ($_POST['denda'] ?? 0));
+            $keterangan           = trim($_POST['keterangan'] ?? '');
+
+            if ($id_peminjaman > 0 && !empty($tanggal_pengembalian)) {
+                try {
+                    $result = $this->pengembalianModel->createPengembalian($id_peminjaman, $tanggal_pengembalian, $denda_tambahan, $keterangan);
+                    if ($result) {
+                        $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mencatat pengembalian alat untuk Transaksi Peminjaman #' . $id_peminjaman);
+                        header('Location: index.php?c=admin&a=pengembalian&status=added');
+                        exit;
+                    } else {
+                        header('Location: index.php?c=admin&a=pengembalian&status=error');
+                        exit;
+                    }
+                } catch (Exception $e) {
+                    header('Location: index.php?c=admin&a=pengembalian&status=error');
+                    exit;
+                }
+            }
+        }
+        header('Location: index.php?c=admin&a=pengembalian');
+        exit;
+    }
+
+    public function ubah_pengembalian() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id_pengembalian      = (int)($_POST['id_pengembalian'] ?? 0);
+            $tanggal_pengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
+            $denda_tambahan       = (float)($_POST['denda_tambahan'] ?? ($_POST['denda'] ?? 0));
+            $keterangan           = trim($_POST['keterangan'] ?? '');
+
+            if ($id_pengembalian > 0 && !empty($tanggal_pengembalian)) {
+                try {
+                    $this->pengembalianModel->updatePengembalian($id_pengembalian, $tanggal_pengembalian, $denda_tambahan, $keterangan);
+                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Memperbarui data pengembalian ID #' . $id_pengembalian);
+                    header('Location: index.php?c=admin&a=pengembalian&status=updated');
+                    exit;
+                } catch (Exception $e) {
+                    header('Location: index.php?c=admin&a=pengembalian&status=error');
+                    exit;
+                }
+            }
+        }
+        header('Location: index.php?c=admin&a=pengembalian');
+        exit;
+    }
+
+    public function hapus_pengembalian() {
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $this->pengembalianModel->deletePengembalian($id);
+                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus catatan pengembalian ID #' . $id);
+                header('Location: index.php?c=admin&a=pengembalian&status=deleted');
+                exit;
+            } catch (Exception $e) {
+                header('Location: index.php?c=admin&a=pengembalian&status=error');
+                exit;
+            }
+        }
+        header('Location: index.php?c=admin&a=pengembalian');
         exit;
     }
 }
