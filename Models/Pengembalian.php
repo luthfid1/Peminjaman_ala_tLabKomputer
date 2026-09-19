@@ -210,6 +210,9 @@ class Pengembalian {
             $stmtStok->execute();
         }
 
+        return $result;
+    }
+
     // Ambil data riwayat pengembalian khusus milik satu user (Peminjam)
     public function getPengembalianByUser($id_user, $keyword = null) {
         $query = "SELECT pg.*, 
