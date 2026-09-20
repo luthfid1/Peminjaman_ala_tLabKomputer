@@ -7,7 +7,7 @@ require_once 'Views/admin_header.php';
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label">AUDIT SISTEM</span>
-        <h1 class="admin-title">Log Aktivitas Pengguna</h1>
+        <h1 class="admin-title">Log Aktivitas Anggota</h1>
         <p class="admin-subtitle">Catatan rekam jejak aktivitas login, peminjaman, dan pengelolaan data oleh seluruh pengguna.</p>
     </div>
 </div>
