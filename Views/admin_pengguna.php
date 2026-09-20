@@ -7,11 +7,11 @@ require_once 'Views/admin_header.php';
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label">AKSES & OTORISASI</span>
-        <h1 class="admin-title">Kelola Pengguna</h1>
+        <h1 class="admin-title">Kelola Anggota</h1>
         <p class="admin-subtitle">Atur akun admin, petugas perpustakaan musik, dan siswa/peminjam.</p>
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahUser')">
-        + Tambah Pengguna
+        + Tambah Anggota
     </button>
 </div>
 
@@ -153,7 +153,7 @@ require_once 'Views/admin_header.php';
 <div class="modal-overlay" id="modalUbahUser">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Ubah Data Pengguna</h3>
+            <h3 class="modal-title">Ubah Data Anggota</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalUbahUser')">&times;</button>
         </div>
         <form method="POST" action="index.php?c=admin&a=ubah_pengguna">
