@@ -77,7 +77,7 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        Data alat
+                        Daftar Alat
                     </a>
                 </li>
                 <li>
@@ -85,7 +85,7 @@
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M4 6h16M4 12h16M4 18h7"></path>
                         </svg>
-                        Kategori
+                        Daftar Kategori
                     </a>
                 </li>
                 <li>
@@ -97,7 +97,7 @@
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
-                        Peminjaman
+                        Daftar Peminjaman
                     </a>
                 </li>
                 <li>
@@ -106,7 +106,7 @@
                             <polyline points="1 4 1 10 7 10"></polyline>
                             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                         </svg>
-                        Pengembalian
+                        Daftar Pengembalian
                     </a>
                 </li>
                 <li>
@@ -117,7 +117,7 @@
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        Pengguna
+                        Daftar Pengguna
                     </a>
                 </li>
                 <li>
