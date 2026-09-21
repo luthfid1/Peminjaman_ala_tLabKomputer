@@ -32,8 +32,8 @@ require_once 'Views/admin_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Daftar Pengguna Sistem</h3>
-            <p class="inventory-sub">Total <?= count($daftarPengguna) ?> akun pengguna terdaftar.</p>
+            <h3 class="inventory-title">Daftar Anggota Sistem</h3>
+            <p class="inventory-sub">Total <?= count($daftarPengguna) ?> akun Anggota terdaftar.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="admin">
@@ -64,7 +64,7 @@ require_once 'Views/admin_header.php';
             <?php if (empty($daftarPengguna)): ?>
                 <tr>
                     <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Belum ada data pengguna.
+                        Belum ada data Anggota.
                     </td>
                 </tr>
             <?php else: ?>
