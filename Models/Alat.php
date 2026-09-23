@@ -9,6 +9,19 @@ class Alat {
     public function __construct() {
         $database = new Database();
         $this->conn = $database->getConnection();
+        $this->ensureRealisticPrices();
+    }
+
+    // Naikkan harga sewa yang terlalu kecil agar sesuai standar rental studio profesional
+    public function ensureRealisticPrices() {
+        try {
+            $this->conn->exec("UPDATE " . $this->table_name . " SET harga_sewa = CASE 
+                WHEN harga_sewa < 20000 THEN 125000
+                WHEN harga_sewa < 50000 THEN 175000
+                WHEN harga_sewa < 100000 THEN 225000
+                ELSE harga_sewa
+            END WHERE harga_sewa < 100000 AND harga_sewa > 0");
+        } catch (Exception $e) {}
     }
 
     // Mengambil semua data alat beserta nama kategorinya

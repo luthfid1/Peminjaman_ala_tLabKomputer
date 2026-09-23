@@ -10,9 +10,9 @@ require_once 'Views/peminjam_header.php';
         <h1 class="admin-title">Peminjaman Saya</h1>
         <p class="admin-subtitle">Pantau seluruh status permohonan pinjam alat musik Anda mulai dari pengajuan hingga persetujuan.</p>
     </div>
-    <a href="index.php?c=peminjam&a=katalog" class="btn-add-instrument">
+    <button type="button" class="btn-add-instrument" onclick="openModalTambahPinjam()">
         + Ajukan Peminjaman Baru
-    </a>
+    </button>
 </div>
 
 <!-- ALERTS -->
@@ -166,7 +166,76 @@ require_once 'Views/peminjam_header.php';
     </div>
 </div>
 
+<!-- MODAL AJUKAN PEMINJAMAN BARU -->
+<div class="modal-overlay" id="modalTambahPinjam">
+    <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Ajukan Peminjaman Alat Musik</h3>
+            <button type="button" class="modal-close" onclick="closeModalTambahPinjam()">&times;</button>
+        </div>
+        <form method="POST" action="index.php?c=peminjam&a=ajukan_peminjaman">
+            <div class="form-group">
+                <label class="form-label">Pilih Alat Musik <span style="color:#ef4444;">*</span></label>
+                <select name="id_alat" class="form-control" id="pilih_id_alat" onchange="updateStokInfo()" required>
+                    <option value="">-- Pilih Instrumen Musik --</option>
+                    <?php foreach ($daftarAlat as $alat): ?>
+                        <?php $s = (int)$alat['jumlah_stok']; ?>
+                        <option value="<?= $alat['id_alat'] ?>" data-stok="<?= $s ?>" <?= $s <= 0 ? 'disabled' : '' ?>>
+                            <?= htmlspecialchars($alat['nama_alat']) ?> (<?= htmlspecialchars($alat['nama_kategori'] ?? 'Umum') ?>) - Stok: <?= $s ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <small id="stok_info_text" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;"></small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Jumlah Unit <span style="color:#ef4444;">*</span></label>
+                <input type="number" name="jumlah" id="input_jumlah" class="form-control" value="1" min="1" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Tanggal Mulai Pinjam <span style="color:#ef4444;">*</span></label>
+                    <input type="date" name="tanggal_pinjam" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tanggal Rencana Kembali <span style="color:#ef4444;">*</span></label>
+                    <input type="date" name="tanggal_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 20px;">
+                <button type="button" class="btn-modal-cancel" onclick="closeModalTambahPinjam()">Batal</button>
+                <button type="submit" class="btn-modal-submit">Kirim Pengajuan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function openModalTambahPinjam() {
+    document.getElementById('modalTambahPinjam').classList.add('active');
+}
+
+function closeModalTambahPinjam() {
+    document.getElementById('modalTambahPinjam').classList.remove('active');
+}
+
+function updateStokInfo() {
+    const sel = document.getElementById('pilih_id_alat');
+    const opt = sel.options[sel.selectedIndex];
+    const stok = opt ? parseInt(opt.getAttribute('data-stok') || 0) : 0;
+    const txt = document.getElementById('stok_info_text');
+    const jml = document.getElementById('input_jumlah');
+    if (stok > 0) {
+        txt.textContent = 'Maksimal pinjam saat ini: ' + stok + ' unit.';
+        jml.max = stok;
+    } else {
+        txt.textContent = '';
+        jml.removeAttribute('max');
+    }
+}
+
 function openModalKembalikan(idPeminjaman, namaAlat, tglKembali) {
     document.getElementById('kembalikan_id_peminjaman').value = idPeminjaman;
     document.getElementById('kembalikan_nama_alat').textContent = namaAlat;

@@ -1,13 +1,13 @@
 <?php
 $activePage = 'pengembalian';
-$pageTitle = 'Riwayat Pengembalian - NARA BAND';
+$pageTitle = 'Pengembalian Saya - NARA BAND';
 require_once 'Views/peminjam_header.php';
 ?>
 
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label">ARSIP & SIRKULASI</span>
-        <h1 class="admin-title">Riwayat Pengembalian</h1>
+        <h1 class="admin-title">Pengembalian Saya</h1>
         <p class="admin-subtitle">Daftar instrumen musik yang telah Anda kembalikan beserta rincian denda keterlambatan jika ada.</p>
     </div>
 </div>

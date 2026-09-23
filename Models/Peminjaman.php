@@ -98,7 +98,7 @@ class Peminjaman {
             $this->reduceStock($id_alat, $jumlah);
         }
 
-        return $result;
+        return $result ? (int)$this->conn->lastInsertId() : false;
     }
 
     // Ubah data peminjaman
@@ -192,10 +192,12 @@ class Peminjaman {
     public function getPeminjamanByUser($id_user, $keyword = null) {
         $query = "SELECT p.id_peminjaman, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
                          a.nama_alat, a.harga_sewa, a.spesifikasi,
-                         k.nama_kategori
+                         k.nama_kategori,
+                         pb.id_pembayaran, pb.total_bayar, pb.metode_pembayaran, pb.status_pembayaran, pb.bukti_pembayaran, pb.tanggal_pembayaran
                   FROM " . $this->table_name . " p
                   LEFT JOIN alat a ON p.id_alat = a.id_alat
                   LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
+                  LEFT JOIN pembayaran pb ON p.id_peminjaman = pb.id_peminjaman
                   WHERE p.id_user = :id_user";
 
         if (!empty($keyword)) {

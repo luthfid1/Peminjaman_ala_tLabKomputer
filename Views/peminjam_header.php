@@ -65,21 +65,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="index.php?c=peminjam&a=katalog" class="<?= ($activePage === 'katalog') ? 'active' : '' ?>">
+                    <a href="index.php?c=peminjam&a=daftar_alat" class="<?= ($activePage === 'daftar_alat') ? 'active' : '' ?>">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            <path d="M9 18V5l12-2v13"></path>
+                            <circle cx="6" cy="18" r="3"></circle>
+                            <circle cx="18" cy="16" r="3"></circle>
                         </svg>
                         Daftar Alat Musik
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?c=peminjam&a=kategori" class="<?= ($activePage === 'kategori') ? 'active' : '' ?>">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M4 6h16M4 12h16M4 18h7"></path>
-                        </svg>
-                        Daftar Kategori
                     </a>
                 </li>
                 <li>
