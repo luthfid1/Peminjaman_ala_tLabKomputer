@@ -59,7 +59,6 @@
 
             <button type="submit" class="btn-auth-submit">Masuk</button>
         </form>
-
         <div class="auth-footer" style="margin-top: 16px;">
             Belum punya akun? <a href="index.php?c=auth&a=register">Daftar sekarang</a>
         </div>
