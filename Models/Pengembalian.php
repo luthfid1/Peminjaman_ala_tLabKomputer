@@ -217,7 +217,7 @@ class Pengembalian {
     public function getPengembalianByUser($id_user, $keyword = null) {
         $query = "SELECT pg.*, 
                          p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status as status_peminjaman,
-                         a.id_alat, a.nama_alat, a.harga_sewa, a.foto,
+                         a.id_alat, a.nama_alat, a.harga_sewa,
                          k.nama_kategori
                   FROM " . $this->table_name . " pg
                   INNER JOIN peminjaman p ON pg.id_peminjaman = p.id_peminjaman

@@ -191,7 +191,7 @@ class Peminjaman {
     // Ambil riwayat peminjaman khusus milik satu user (Peminjam)
     public function getPeminjamanByUser($id_user, $keyword = null) {
         $query = "SELECT p.id_peminjaman, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         a.nama_alat, a.harga_sewa, a.foto, a.kondisi,
+                         a.nama_alat, a.harga_sewa, a.spesifikasi,
                          k.nama_kategori
                   FROM " . $this->table_name . " p
                   LEFT JOIN alat a ON p.id_alat = a.id_alat

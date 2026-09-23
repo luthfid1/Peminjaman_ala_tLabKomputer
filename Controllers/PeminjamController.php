@@ -165,11 +165,47 @@ class PeminjamController {
     }
 
     // ==========================================
+    // KEMBALIKAN ALAT MUSIK (PEMINJAM)
+    // ==========================================
+    public function kembalikan_alat() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $userId            = $_SESSION['user']['id_users'];
+            $id_peminjaman     = (int)($_POST['id_peminjaman'] ?? 0);
+            $tanggalPengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
+            $keterangan        = trim($_POST['keterangan'] ?? 'Pengembalian oleh peminjam');
+
+            if ($id_peminjaman > 0) {
+                try {
+                    $peminjaman = $this->peminjamanModel->getPeminjamanById($id_peminjaman);
+                    if ($peminjaman && $peminjaman['id_user'] == $userId && $peminjaman['status'] === 'dipinjam') {
+                        $result = $this->pengembalianModel->createPengembalian($id_peminjaman, $tanggalPengembalian, 0, $keterangan);
+                        if ($result) {
+                            $this->userModel->recordLog($userId, 'Mengembalikan alat musik: ' . ($peminjaman['nama_alat'] ?? "Alat ID {$peminjaman['id_alat']}"));
+                            header('Location: index.php?c=peminjam&a=pengembalian&status=returned');
+                            exit;
+                        }
+                    }
+                } catch (Exception $e) {
+                    header('Location: index.php?c=peminjam&a=peminjaman&status=error');
+                    exit;
+                }
+            }
+        }
+        header('Location: index.php?c=peminjam&a=peminjaman');
+        exit;
+    }
+
+    // ==========================================
     // RIWAYAT PENGEMBALIAN SAYA & INFO DENDA
     // ==========================================
     public function pengembalian() {
         $userId = $_SESSION['user']['id_users'];
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+        $message = '';
+        if (isset($_GET['status']) && $_GET['status'] === 'returned') {
+            $message = 'Alat musik berhasil dikembalikan! Riwayat transaksi pengembalian Anda telah diperbarui.';
+        }
 
         $daftarPengembalian = $this->pengembalianModel->getPengembalianByUser($userId, $keyword);
         $totalDenda = $this->pengembalianModel->getTotalDendaByUser($userId);
@@ -178,59 +214,17 @@ class PeminjamController {
     }
 
     // ==========================================
-    // PROFIL SAYA
+    // DAFTAR KATEGORI ALAT MUSIK
     // ==========================================
-    public function profil() {
-        $userId = $_SESSION['user']['id_users'];
-        $user = $this->userModel->getUserById($userId);
+    public function kategori() {
+        $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $daftarKategori = $this->kategoriModel->getKategoriWithCount($keyword);
 
-        $message = '';
-        $error = '';
-        if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'updated') $message = 'Data profil Anda berhasil diperbarui.';
-            if ($_GET['status'] === 'password_mismatch') $error = 'Konfirmasi kata sandi baru tidak cocok!';
-            if ($_GET['status'] === 'error') $error = 'Gagal memperbarui profil.';
-        }
-
-        require_once 'Views/peminjam_profil.php';
+        require_once 'Views/peminjam_kategori.php';
     }
 
-    public function ubah_profil() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId           = $_SESSION['user']['id_users'];
-            $nama_lengkap     = trim($_POST['nama_lengkap'] ?? '');
-            $username         = trim($_POST['username'] ?? '');
-            $no_hp            = trim($_POST['no_hp'] ?? '');
-            $alamat           = trim($_POST['alamat'] ?? '');
-            $password_baru    = trim($_POST['password_baru'] ?? '');
-            $konfirmasi_pass  = trim($_POST['konfirmasi_password'] ?? '');
-
-            if (!empty($password_baru) && $password_baru !== $konfirmasi_pass) {
-                header('Location: index.php?c=peminjam&a=profil&status=password_mismatch');
-                exit;
-            }
-
-            if (!empty($nama_lengkap) && !empty($username)) {
-                try {
-                    $currentUser = $this->userModel->getUserById($userId);
-                    $pass = !empty($password_baru) ? $password_baru : null;
-
-                    $this->userModel->updateUser($userId, $nama_lengkap, $username, $currentUser['role'], $pass, $alamat, $no_hp);
-
-                    // Update session
-                    $_SESSION['user']['nama_lengkap'] = $nama_lengkap;
-                    $_SESSION['user']['username']     = $username;
-
-                    $this->userModel->recordLog($userId, 'Memperbarui profil diri');
-                    header('Location: index.php?c=peminjam&a=profil&status=updated');
-                    exit;
-                } catch (Exception $e) {
-                    header('Location: index.php?c=peminjam&a=profil&status=error');
-                    exit;
-                }
-            }
-        }
-        header('Location: index.php?c=peminjam&a=profil');
+    public function profil() {
+        header('Location: index.php?c=peminjam&a=dashboard');
         exit;
     }
 }

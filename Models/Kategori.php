@@ -28,6 +28,27 @@ class Kategori {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Ambil semua data kategori beserta jumlah alat musiknya
+    public function getKategoriWithCount($keyword = null) {
+        $query = "SELECT k.id_kategori, k.nama_kategori, k.created_at, 
+                         COUNT(a.id_alat) as total_alat,
+                         COALESCE(SUM(a.jumlah_stok), 0) as total_stok
+                  FROM " . $this->table_name . " k
+                  LEFT JOIN alat a ON k.id_kategori = a.id_kategori";
+        if (!empty($keyword)) {
+            $query .= " WHERE k.nama_kategori LIKE :keyword";
+        }
+        $query .= " GROUP BY k.id_kategori, k.nama_kategori, k.created_at ORDER BY k.id_kategori DESC";
+
+        $stmt = $this->conn->prepare($query);
+        if (!empty($keyword)) {
+            $kw = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $kw);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Ambil kategori berdasarkan ID
     public function getKategoriById($id) {
         $query = "SELECT * FROM " . $this->table_name . " WHERE id_kategori = :id LIMIT 1";

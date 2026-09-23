@@ -12,6 +12,13 @@ require_once 'Views/peminjam_header.php';
     </div>
 </div>
 
+<!-- ALERTS -->
+<?php if (!empty($message)): ?>
+    <div class="auth-alert auth-alert-success" style="margin-bottom: 20px;">
+        <span><?= htmlspecialchars($message) ?></span>
+    </div>
+<?php endif; ?>
+
 <!-- INFO BOX -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
     <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; gap: 16px;">

@@ -71,7 +71,15 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        Katalog Alat
+                        Daftar Alat Musik
+                    </a>
+                </li>
+                <li>
+                    <a href="index.php?c=peminjam&a=kategori" class="<?= ($activePage === 'kategori') ? 'active' : '' ?>">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 6h16M4 12h16M4 18h7"></path>
+                        </svg>
+                        Daftar Kategori
                     </a>
                 </li>
                 <li>
@@ -92,16 +100,7 @@
                             <polyline points="1 4 1 10 7 10"></polyline>
                             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                         </svg>
-                        Riwayat Pengembalian
-                    </a>
-                </li>
-                <li>
-                    <a href="index.php?c=peminjam&a=profil" class="<?= ($activePage === 'profil') ? 'active' : '' ?>">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        Profil Saya
+                        Pengembalian Saya
                     </a>
                 </li>
                 <li>

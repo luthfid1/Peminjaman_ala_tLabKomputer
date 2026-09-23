@@ -110,8 +110,19 @@ require_once 'Views/peminjam_header.php';
                                    onclick="return confirm('Apakah Anda yakin ingin membatalkan pengajuan peminjaman alat ini?')">
                                     Batalkan
                                 </a>
+                            <?php elseif ($status === 'dipinjam'): ?>
+                                <button type="button" 
+                                        class="btn-action-edit" 
+                                        style="color: #0f766e; background: #ccfbf1; border-color: #99f6e4; font-weight: 600;" 
+                                        onclick="openModalKembalikan(<?= (int)$p['id_peminjaman'] ?>, '<?= htmlspecialchars(addslashes($p['nama_alat'] ?? 'Instrumen')) ?>', '<?= htmlspecialchars($p['tanggal_kembali'] ?? '') ?>')">
+                                    Kembalikan
+                                </button>
+                            <?php elseif ($status === 'dikembalikan'): ?>
+                                <a href="index.php?c=peminjam&a=pengembalian" class="btn-action-edit" style="color: var(--teal-dark);">
+                                    Lihat Riwayat
+                                </a>
                             <?php else: ?>
-                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Terkunci</span>
+                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Selesai</span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -120,5 +131,52 @@ require_once 'Views/peminjam_header.php';
         </tbody>
     </table>
 </section>
+
+<!-- MODAL KEMBALIKAN ALAT -->
+<div class="modal-overlay" id="modalKembalikanAlat">
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Form Pengembalian Alat Musik</h3>
+            <button type="button" class="modal-close" onclick="closeModalKembalikan()">&times;</button>
+        </div>
+        <form method="POST" action="index.php?c=peminjam&a=kembalikan_alat">
+            <input type="hidden" name="id_peminjaman" id="kembalikan_id_peminjaman">
+
+            <div style="padding: 16px; background: #f0fdf4; border-radius: 8px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
+                <div style="font-size: 12px; color: #166534;">Anda akan mengembalikan:</div>
+                <div style="font-size: 15px; font-weight: 700; color: #14532d;" id="kembalikan_nama_alat">-</div>
+                <div style="font-size: 12px; color: #166534; margin-top: 4px;" id="kembalikan_info_tenggat"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tanggal Pengembalian <span style="color:#ef4444;">*</span></label>
+                <input type="date" name="tanggal_pengembalian" class="form-control" value="<?= date('Y-m-d') ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Catatan Kondisi / Keterangan</label>
+                <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Alat dikembalikan dalam keadaan lengkap dan baik."></textarea>
+            </div>
+
+            <div class="modal-footer" style="margin-top: 20px;">
+                <button type="button" class="btn-modal-cancel" onclick="closeModalKembalikan()">Batal</button>
+                <button type="submit" class="btn-modal-submit">Konfirmasi Pengembalian</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModalKembalikan(idPeminjaman, namaAlat, tglKembali) {
+    document.getElementById('kembalikan_id_peminjaman').value = idPeminjaman;
+    document.getElementById('kembalikan_nama_alat').textContent = namaAlat;
+    document.getElementById('kembalikan_info_tenggat').textContent = 'Tenggat Waktu: ' + (tglKembali || '-');
+    document.getElementById('modalKembalikanAlat').classList.add('active');
+}
+
+function closeModalKembalikan() {
+    document.getElementById('modalKembalikanAlat').classList.remove('active');
+}
+</script>
 
 <?php require_once 'Views/peminjam_footer.php'; ?>

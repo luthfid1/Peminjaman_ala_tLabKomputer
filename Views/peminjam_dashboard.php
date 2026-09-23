@@ -4,88 +4,90 @@ $pageTitle = 'Dashboard Peminjam - NARA BAND';
 require_once 'Views/peminjam_header.php';
 ?>
 
+<?php
+$hariArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+$bulanArr = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$tglStr = strtoupper($hariArr[date('w')] . ', ' . date('j') . ' ' . $bulanArr[(int)date('n')] . ' ' . date('Y'));
+?>
+
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label"><?= strtoupper(date('l, d F Y')) ?></span>
-        <h1 class="admin-title">Halo, <?= htmlspecialchars($_SESSION['user']['nama_lengkap'] ?? 'Peminjam') ?>! 👋</h1>
+        <span class="admin-date-label"><?= htmlspecialchars($tglStr) ?></span>
+        <h1 class="admin-title">Halo, <?= htmlspecialchars($_SESSION['user']['nama_lengkap'] ?? 'Peminjam') ?></h1>
         <p class="admin-subtitle">Selamat datang di Ruang Peminjam NARA BAND. Ajukan peminjaman alat musik dan pantau status transaksi Anda.</p>
     </div>
-    <a href="index.php?c=peminjam&a=katalog" class="btn-add-instrument">
-        + Pinjam Alat Musik
-    </a>
+    <div style="display: flex; gap: 10px;">
+        <a href="index.php?c=peminjam&a=kategori" class="btn-action-edit" style="padding: 10px 18px; font-weight: 600; text-decoration: none;">
+            Lihat Kategori
+        </a>
+        <a href="index.php?c=peminjam&a=katalog" class="btn-add-instrument">
+            + Pinjam Alat Musik
+        </a>
+    </div>
 </div>
 
-<!-- STATS GRID -->
-<div class="admin-stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon-wrapper icon-orange">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <span class="stat-label">Menunggu Verifikasi</span>
-            <div class="stat-number-row">
-                <span class="stat-number"><?= $totalPengajuan ?></span>
-                <span class="stat-badge badge-warning">Pengajuan</span>
+<!-- 4 METRIC CARDS GRID -->
+<div class="admin-metrics-grid">
+    <div class="metric-card">
+        <div class="metric-top-row">
+            <span class="metric-label">Menunggu Verifikasi</span>
+            <div class="metric-icon-wrap" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
             </div>
-            <span class="stat-subtext">Menunggu persetujuan petugas</span>
         </div>
+        <div class="metric-number"><?= (int)$totalPengajuan ?></div>
+        <div class="metric-sub" style="color: #b45309;">Menunggu persetujuan petugas</div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon-wrapper icon-teal">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <span class="stat-label">Sedang Dipinjam</span>
-            <div class="stat-number-row">
-                <span class="stat-number"><?= $totalDipinjam ?></span>
-                <span class="stat-badge badge-teal">Aktif</span>
+    <div class="metric-card">
+        <div class="metric-top-row">
+            <span class="metric-label">Sedang Dipinjam</span>
+            <div class="metric-icon-wrap">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
             </div>
-            <span class="stat-subtext">Alat yang sedang Anda bawa</span>
         </div>
+        <div class="metric-number"><?= (int)$totalDipinjam ?></div>
+        <div class="metric-sub">Alat yang sedang Anda bawa</div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon-wrapper icon-teal">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <span class="stat-label">Selesai Dikembalikan</span>
-            <div class="stat-number-row">
-                <span class="stat-number"><?= $totalKembali ?></span>
-                <span class="stat-badge badge-teal">Selesai</span>
+    <div class="metric-card">
+        <div class="metric-top-row">
+            <span class="metric-label">Selesai Dikembalikan</span>
+            <div class="metric-icon-wrap">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
             </div>
-            <span class="stat-subtext">Total transaksi terselesaikan</span>
         </div>
+        <div class="metric-number"><?= (int)$totalKembali ?></div>
+        <div class="metric-sub">Total transaksi terselesaikan</div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon-wrapper" style="background: <?= $totalDenda > 0 ? '#fee2e2' : '#f1f5f9' ?>; color: <?= $totalDenda > 0 ? '#b91c1c' : '#64748b' ?>;">
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-        </div>
-        <div class="stat-content">
-            <span class="stat-label">Total Denda Tercatat</span>
-            <div class="stat-number-row">
-                <span class="stat-number" style="font-size: 20px; color: <?= $totalDenda > 0 ? '#b91c1c' : 'inherit' ?>;">
-                    Rp <?= number_format($totalDenda, 0, ',', '.') ?>
-                </span>
+    <div class="metric-card">
+        <div class="metric-top-row">
+            <span class="metric-label">Total Denda Tercatat</span>
+            <div class="metric-icon-wrap" style="<?= $totalDenda > 0 ? 'background: #fee2e2; color: #b91c1c;' : '' ?>">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
             </div>
-            <span class="stat-subtext"><?= $totalDenda > 0 ? 'Denda keterlambatan/kerusakan' : 'Tidak ada denda tertunggak' ?></span>
+        </div>
+        <div class="metric-number" style="font-size: 32px; <?= $totalDenda > 0 ? 'color: #b91c1c;' : '' ?>">
+            Rp <?= number_format($totalDenda, 0, ',', '.') ?>
+        </div>
+        <div class="metric-sub" style="<?= $totalDenda > 0 ? 'color: #b91c1c;' : 'color: var(--teal-dark);' ?>">
+            <?= $totalDenda > 0 ? 'Denda keterlambatan tercatat' : 'Bebas tunggakan denda' ?>
         </div>
     </div>
 </div>
@@ -96,9 +98,14 @@ require_once 'Views/peminjam_header.php';
         <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700;">Butuh Alat Musik untuk Latihan atau Penampilan?</h3>
         <p style="margin: 0; font-size: 13px; opacity: 0.9; max-width: 550px;">Lihat stok alat musik terkini mulai dari gitar, bass, drum, hingga keyboard dan ajukan peminjaman sekarang dengan cepat.</p>
     </div>
-    <a href="index.php?c=peminjam&a=katalog" style="background: white; color: #0f766e; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-        Jelajahi Katalog &rarr;
-    </a>
+    <div style="display: flex; gap: 10px;">
+        <a href="index.php?c=peminjam&a=kategori" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 10px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 13px; white-space: nowrap;">
+            Kategori
+        </a>
+        <a href="index.php?c=peminjam&a=katalog" style="background: white; color: #0f766e; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            Daftar Alat Musik &rarr;
+        </a>
+    </div>
 </div>
 
 <!-- RIWAYAT TERBARU -->
