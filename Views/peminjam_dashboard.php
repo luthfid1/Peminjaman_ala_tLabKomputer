@@ -13,7 +13,7 @@ $tglStr = strtoupper($hariArr[date('w')] . ', ' . date('j') . ' ' . $bulanArr[(i
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label"><?= htmlspecialchars($tglStr) ?></span>
-        <h1 class="admin-title">Halo, <?= htmlspecialchars($_SESSION['user']['nama_lengkap'] ?? 'Peminjam') ?>s</h1>
+        <h1 class="admin-title">Halo, <?= htmlspecialchars($_SESSION['user']['nama_lengkap'] ?? 'Peminjam') ?></h1>
         <p class="admin-subtitle">Selamat datang di Ruang Peminjam NARA BAND. Ajukan peminjaman alat musik dan pantau status transaksi Anda.</p>
     </div>
     <div style="display: flex; gap: 10px;">
