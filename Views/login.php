@@ -60,12 +60,6 @@
             <button type="submit" class="btn-auth-submit">Masuk</button>
         </form>
 
-        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 12px; margin-top: 16px; font-size: 11px; color: #64748b; text-align: left; line-height: 1.5;">
-            <strong>💡 Akun Pengujian Siap Pakai:</strong><br>
-            &bull; <strong>Admin:</strong> <code>admin</code> / <code>admin123</code><br>
-            &bull; <strong>Peminjam:</strong> <code>peminjam</code> / <code>peminjam123</code> (atau akun baru yang Anda daftarkan)
-        </div>
-
         <div class="auth-footer" style="margin-top: 16px;">
             Belum punya akun? <a href="index.php?c=auth&a=register">Daftar sekarang</a>
         </div>
