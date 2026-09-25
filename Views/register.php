@@ -52,16 +52,16 @@
                     <datalist id="daftar-kelas">
                         <option value="X RPL 1">
                         <option value="X RPL 2">
+                        <option value="X RPL 3">
+                        <option value="X RPL 4">
                         <option value="XI RPL 1">
                         <option value="XI RPL 2">
+                        <option value="XI RPL 3">
+                        <option value="XI RPL 4">
                         <option value="XII RPL 1">
                         <option value="XII RPL 2">
                         <option value="XII RPL 3">
                         <option value="XII RPL 4">
-                        <option value="X TKJ 1">
-                        <option value="XI TKJ 1">
-                        <option value="XII TKJ 1">
-                        <option value="XII TKJ 2">
                     </datalist>
                 </div>
                 <div class="form-group" style="flex: 1.5;">
@@ -69,9 +69,7 @@
                     <input type="text" list="daftar-jurusan" id="jurusan" name="jurusan" class="form-control" placeholder="Pilih / isi jurusan" required value="<?= htmlspecialchars($_POST['jurusan'] ?? '') ?>">
                     <datalist id="daftar-jurusan">
                         <option value="Rekayasa Perangkat Lunak">
-                        <option value="Teknik Komputer dan Jaringan">
-                        <option value="Sistem Informasi Jaringan dan Aplikasi">
-                        <option value="Multimedia / Desain Komunikasi Visual">
+                
                     </datalist>
                 </div>
             </div>
