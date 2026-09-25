@@ -13,7 +13,7 @@ class Pengembalian {
 
     public function getAllPengembalian($keyword = null) {
         $query = "SELECT pg.*, 
-                         p.kode_peminjaman, p.tanggal_pinjam, p.tanggal_rencana_kembali,
+                         p.kode_peminjaman, p.waktu_pinjam, p.waktu_rencana_kembali,
                          pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp,
                          u.nama as nama_petugas,
                          dp.id_alat, dp.jumlah,
@@ -50,7 +50,7 @@ class Pengembalian {
 
     public function getPengembalianById($id) {
         $query = "SELECT pg.*, 
-                         p.kode_peminjaman, p.tanggal_pinjam, p.tanggal_rencana_kembali,
+                         p.kode_peminjaman, p.waktu_pinjam, p.waktu_rencana_kembali,
                          pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan,
                          u.nama as nama_petugas,
                          dp.id_alat, dp.jumlah,
@@ -70,16 +70,16 @@ class Pengembalian {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createPengembalian($id_peminjaman, $tanggal_kembali, $kondisi_kembali, $denda, $id_user) {
+    public function createPengembalian($id_peminjaman, $waktu_kembali, $kondisi_kembali, $denda, $id_user) {
         $this->conn->beginTransaction();
         try {
             // 1. Simpan data pengembalian
             $query = "INSERT INTO " . $this->table_name . " 
-                      (id_peminjaman, tanggal_kembali, kondisi_kembali, denda, id_user) 
-                      VALUES (:id_peminjaman, :tanggal_kembali, :kondisi_kembali, :denda, :id_user)";
+                      (id_peminjaman, waktu_kembali, kondisi_kembali, denda, id_user) 
+                      VALUES (:id_peminjaman, :waktu_kembali, :kondisi_kembali, :denda, :id_user)";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_peminjaman', $id_peminjaman, PDO::PARAM_INT);
-            $stmt->bindParam(':tanggal_kembali', $tanggal_kembali);
+            $stmt->bindParam(':waktu_kembali', $waktu_kembali);
             $stmt->bindParam(':kondisi_kembali', $kondisi_kembali);
             $stmt->bindParam(':denda', $denda);
             $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
@@ -87,12 +87,12 @@ class Pengembalian {
 
             $pengembalianId = $this->conn->lastInsertId();
 
-            // 2. Update status peminjaman jadi 'dikembalikan' dan isi tanggal_kembali
+            // 2. Update status peminjaman jadi 'dikembalikan' dan isi waktu_kembali
             $queryPeminjaman = "UPDATE peminjaman 
-                                SET status = 'dikembalikan', tanggal_kembali = :tanggal_kembali 
+                                SET status = 'dikembalikan', waktu_kembali = :waktu_kembali 
                                 WHERE id = :id_peminjaman";
             $stmtPeminjaman = $this->conn->prepare($queryPeminjaman);
-            $stmtPeminjaman->bindParam(':tanggal_kembali', $tanggal_kembali);
+            $stmtPeminjaman->bindParam(':waktu_kembali', $waktu_kembali);
             $stmtPeminjaman->bindParam(':id_peminjaman', $id_peminjaman, PDO::PARAM_INT);
             $stmtPeminjaman->execute();
 
@@ -119,12 +119,12 @@ class Pengembalian {
         }
     }
 
-    public function updatePengembalian($id, $tanggal_kembali, $kondisi_kembali, $denda) {
+    public function updatePengembalian($id, $waktu_kembali, $kondisi_kembali, $denda) {
         $query = "UPDATE " . $this->table_name . " 
-                  SET tanggal_kembali = :tanggal_kembali, kondisi_kembali = :kondisi_kembali, denda = :denda 
+                  SET waktu_kembali = :waktu_kembali, kondisi_kembali = :kondisi_kembali, denda = :denda 
                   WHERE id = :id";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':tanggal_kembali', $tanggal_kembali);
+        $stmt->bindParam(':waktu_kembali', $waktu_kembali);
         $stmt->bindParam(':kondisi_kembali', $kondisi_kembali);
         $stmt->bindParam(':denda', $denda);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);

@@ -54,8 +54,8 @@ require_once __DIR__ . '/admin_header.php';
                 <th>No</th>
                 <th>Kode & Siswa</th>
                 <th>Alat Lab Dikembalikan</th>
-                <th>Tgl Pinjam</th>
-                <th>Tgl Dikembalikan</th>
+                <th>Waktu Pinjam</th>
+                <th>Waktu Dikembalikan</th>
                 <th>Kondisi Kembali</th>
                 <th>Denda</th>
                 <th style="text-align: right;">Aksi</th>
@@ -83,11 +83,11 @@ require_once __DIR__ . '/admin_header.php';
                             <?= htmlspecialchars($pg['nama_alat'] ?? 'Alat Lab') ?>
                             <div style="font-size: 11px; color: var(--text-muted);"><?= (int)($pg['jumlah'] ?? 1) ?> unit &bull; <?= htmlspecialchars($pg['nama_kategori'] ?? '') ?></div>
                         </td>
-                        <td><?= !empty($pg['tanggal_pinjam']) ? date('d M Y', strtotime($pg['tanggal_pinjam'])) : '-' ?></td>
+                        <td><?= !empty($pg['waktu_pinjam']) ? date('H:i', strtotime($pg['waktu_pinjam'])) . ' WIB' : '-' ?></td>
                         <td>
-                            <strong style="color: var(--teal-dark);"><?= !empty($pg['tanggal_kembali']) ? date('d M Y', strtotime($pg['tanggal_kembali'])) : '-' ?></strong>
-                            <?php if (!empty($pg['tanggal_rencana_kembali'])): ?>
-                                <div style="font-size: 11px; color: var(--text-muted);">Tenggat: <?= date('d M Y', strtotime($pg['tanggal_rencana_kembali'])) ?></div>
+                            <strong style="color: var(--teal-dark);"><?= !empty($pg['waktu_kembali']) ? date('H:i', strtotime($pg['waktu_kembali'])) . ' WIB' : '-' ?></strong>
+                            <?php if (!empty($pg['waktu_rencana_kembali'])): ?>
+                                <div style="font-size: 11px; color: var(--text-muted);">Rencana: <?= date('H:i', strtotime($pg['waktu_rencana_kembali'])) ?> WIB</div>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -143,8 +143,8 @@ require_once __DIR__ . '/admin_header.php';
 
             <div class="form-row" style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Pengembalian</label>
-                    <input type="date" name="tanggal_kembali" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    <label class="form-label">Waktu Pengembalian (WIB)</label>
+                    <input type="time" name="waktu_kembali" class="form-control" value="<?= date('H:i') ?>" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label class="form-label">Kondisi Alat Saat Kembali</label>
@@ -182,8 +182,8 @@ require_once __DIR__ . '/admin_header.php';
 
             <div class="form-row" style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Pengembalian</label>
-                    <input type="date" name="tanggal_kembali" id="edit_pg_tanggal_kembali" class="form-control" required>
+                    <label class="form-label">Waktu Pengembalian (WIB)</label>
+                    <input type="time" name="waktu_kembali" id="edit_pg_waktu_kembali" class="form-control" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label class="form-label">Kondisi Alat</label>
@@ -218,7 +218,7 @@ function closeModal(id) {
 }
 function editPengembalian(data) {
     document.getElementById('edit_pg_id').value = data.id;
-    document.getElementById('edit_pg_tanggal_kembali').value = data.tanggal_kembali;
+    document.getElementById('edit_pg_waktu_kembali').value = data.waktu_kembali ? data.waktu_kembali.substring(0, 5) : '';
     document.getElementById('edit_pg_kondisi').value = data.kondisi_kembali || 'Baik & Lengkap';
     document.getElementById('edit_pg_denda').value = data.denda || 0;
     openModal('modalUbahPengembalian');

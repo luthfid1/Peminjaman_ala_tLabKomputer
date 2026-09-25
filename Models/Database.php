@@ -59,6 +59,29 @@ class Database {
                     $sql = file_get_contents($sqlPath);
                     $this->conn->exec($sql);
                 }
+            } else {
+                // Migrasi kolom tanggal -> waktu jika database sudah terlanjur ada tabel lama
+                try {
+                    $colsP = $this->conn->query("SHOW COLUMNS FROM `peminjaman` LIKE 'tanggal_pinjam'");
+                    if ($colsP->rowCount() > 0) {
+                        $this->conn->exec("ALTER TABLE `peminjaman` CHANGE `tanggal_pinjam` `waktu_pinjam` TIME NOT NULL");
+                    }
+                    $colsR = $this->conn->query("SHOW COLUMNS FROM `peminjaman` LIKE 'tanggal_rencana_kembali'");
+                    if ($colsR->rowCount() > 0) {
+                        $this->conn->exec("ALTER TABLE `peminjaman` CHANGE `tanggal_rencana_kembali` `waktu_rencana_kembali` TIME NOT NULL");
+                    }
+                    $colsK = $this->conn->query("SHOW COLUMNS FROM `peminjaman` LIKE 'tanggal_kembali'");
+                    if ($colsK->rowCount() > 0) {
+                        $this->conn->exec("ALTER TABLE `peminjaman` CHANGE `tanggal_kembali` `waktu_kembali` TIME NULL");
+                    }
+                } catch (Exception $e) {}
+
+                try {
+                    $colsPg = $this->conn->query("SHOW COLUMNS FROM `pengembalian` LIKE 'tanggal_kembali'");
+                    if ($colsPg->rowCount() > 0) {
+                        $this->conn->exec("ALTER TABLE `pengembalian` CHANGE `tanggal_kembali` `waktu_kembali` TIME NOT NULL");
+                    }
+                } catch (Exception $e) {}
             }
         } catch (Exception $e) {
             // Lanjut jika sudah terinisialisasi

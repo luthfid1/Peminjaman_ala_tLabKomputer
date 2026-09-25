@@ -50,8 +50,8 @@ require_once __DIR__ . '/admin_header.php';
                 <th>Kode & Siswa</th>
                 <th>Alat Lab Dipinjam</th>
                 <th>Jml</th>
-                <th>Tgl Pinjam</th>
-                <th>Tenggat Kembali</th>
+                <th>Waktu Pinjam</th>
+                <th>Rencana Kembali</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -64,8 +64,8 @@ require_once __DIR__ . '/admin_header.php';
                 </tr>
             <?php else: ?>
                 <?php $no = 1; foreach ($daftarPeminjamanAktif as $p): 
-                    $tglKembali = !empty($p['tanggal_rencana_kembali']) ? date('d M Y', strtotime($p['tanggal_rencana_kembali'])) : '-';
-                    $terlambat = !empty($p['tanggal_rencana_kembali']) && (strtotime($p['tanggal_rencana_kembali']) < strtotime(date('Y-m-d')));
+                    $wktKembali = !empty($p['waktu_rencana_kembali']) ? date('H:i', strtotime($p['waktu_rencana_kembali'])) . ' WIB' : '-';
+                    $terlambat = !empty($p['waktu_rencana_kembali']) && (strtotime($p['waktu_rencana_kembali']) < strtotime(date('H:i:s')));
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
@@ -79,15 +79,15 @@ require_once __DIR__ . '/admin_header.php';
                             <div style="font-size: 11px; color: var(--text-muted);"><?= htmlspecialchars($p['kode_alat'] ?? '') ?></div>
                         </td>
                         <td><strong><?= (int)($p['jumlah'] ?? 1) ?></strong> unit</td>
-                        <td style="white-space: nowrap;"><?= date('d M Y', strtotime($p['tanggal_pinjam'])) ?></td>
+                        <td style="white-space: nowrap;"><?= !empty($p['waktu_pinjam']) ? date('H:i', strtotime($p['waktu_pinjam'])) . ' WIB' : '-' ?></td>
                         <td style="white-space: nowrap;">
                             <?php if ($terlambat): ?>
                                 <span style="color: #ef4444; font-weight: 700;">
-                                    <?= $tglKembali ?>
-                                    <span style="display:block; font-size:11px; font-weight:400;">⚠ Terlambat</span>
+                                    <?= $wktKembali ?>
+                                    <span style="display:block; font-size:11px; font-weight:400;">⚠ Terlewat</span>
                                 </span>
                             <?php else: ?>
-                                <?= $tglKembali ?>
+                                <?= $wktKembali ?>
                             <?php endif; ?>
                         </td>
                         <td>

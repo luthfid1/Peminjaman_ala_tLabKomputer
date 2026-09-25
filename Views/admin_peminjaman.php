@@ -8,7 +8,7 @@ require_once __DIR__ . '/admin_header.php';
     <div>
         <span class="admin-date-label">SIRKULASI LABORATORIUM</span>
         <h1 class="admin-title">Kelola Data Peminjaman</h1>
-        <p class="admin-subtitle">Catat peminjaman langsung di lab, kelola permohonan peminjaman siswa, dan pantau tenggat pengembalian.</p>
+        <p class="admin-subtitle">Catat peminjaman jam praktikum, kelola permohonan siswa, dan pantau tenggat waktu pengembalian alat.</p>
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahPeminjaman')">
         + Catat Peminjaman Lab
@@ -55,7 +55,7 @@ require_once __DIR__ . '/admin_header.php';
                 <th>Kode & Siswa</th>
                 <th>Alat Lab</th>
                 <th>Jml</th>
-                <th>Tgl Pinjam</th>
+                <th>Waktu Pinjam</th>
                 <th>Rencana Kembali</th>
                 <th>Keperluan</th>
                 <th>Status</th>
@@ -83,6 +83,9 @@ require_once __DIR__ . '/admin_header.php';
                     } elseif ($status === 'ditolak') {
                         $statusClass = 'badge-busy';
                     }
+
+                    $waktuPinjamFmt = !empty($p['waktu_pinjam']) ? substr($p['waktu_pinjam'], 0, 5) . ' WIB' : '-';
+                    $waktuRencanaFmt = !empty($p['waktu_rencana_kembali']) ? substr($p['waktu_rencana_kembali'], 0, 5) . ' WIB' : '-';
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
@@ -96,8 +99,8 @@ require_once __DIR__ . '/admin_header.php';
                             <div style="font-size: 11px; color: var(--text-muted);"><?= htmlspecialchars($p['nama_kategori'] ?? '') ?></div>
                         </td>
                         <td><strong><?= (int)$p['jumlah'] ?></strong> unit</td>
-                        <td><?= date('d M Y', strtotime($p['tanggal_pinjam'])) ?></td>
-                        <td><strong style="color: #0369a1;"><?= date('d M Y', strtotime($p['tanggal_rencana_kembali'])) ?></strong></td>
+                        <td><span style="font-weight: 600;"><?= $waktuPinjamFmt ?></span></td>
+                        <td><strong style="color: #0369a1;"><?= $waktuRencanaFmt ?></strong></td>
                         <td style="max-width: 180px; font-size: 12px; color: var(--text-muted);"><?= htmlspecialchars($p['keperluan'] ?? '-') ?></td>
                         <td>
                             <span class="status-badge <?= $statusClass ?>"><?= $statusText ?></span>
@@ -163,12 +166,12 @@ require_once __DIR__ . '/admin_header.php';
 
             <div class="form-row" style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Pinjam</label>
-                    <input type="date" name="tanggal_pinjam" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    <label class="form-label">Waktu Pinjam (Jam)</label>
+                    <input type="time" name="waktu_pinjam" class="form-control" value="<?= date('H:i') ?>" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Rencana Kembali</label>
-                    <input type="date" name="tanggal_rencana_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required>
+                    <label class="form-label">Waktu Rencana Kembali (Jam)</label>
+                    <input type="time" name="waktu_rencana_kembali" class="form-control" value="<?= date('H:i', strtotime('+2 hours')) ?>" required>
                 </div>
             </div>
 
@@ -240,12 +243,12 @@ require_once __DIR__ . '/admin_header.php';
 
             <div class="form-row" style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Pinjam</label>
-                    <input type="date" name="tanggal_pinjam" id="edit_pmj_tgl_pinjam" class="form-control" required>
+                    <label class="form-label">Waktu Pinjam (Jam)</label>
+                    <input type="time" name="waktu_pinjam" id="edit_pmj_waktu_pinjam" class="form-control" required>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Tanggal Rencana Kembali</label>
-                    <input type="date" name="tanggal_rencana_kembali" id="edit_pmj_tgl_rencana" class="form-control" required>
+                    <label class="form-label">Waktu Rencana Kembali (Jam)</label>
+                    <input type="time" name="waktu_rencana_kembali" id="edit_pmj_waktu_rencana" class="form-control" required>
                 </div>
             </div>
 
@@ -286,8 +289,8 @@ function editPeminjaman(data) {
     document.getElementById('edit_pmj_id_alat').value = data.id_alat || '';
     document.getElementById('edit_pmj_jumlah').value = data.jumlah || 1;
     document.getElementById('edit_pmj_jenis').value = data.jenis_peminjaman || 'Praktek Lab';
-    document.getElementById('edit_pmj_tgl_pinjam').value = data.tanggal_pinjam;
-    document.getElementById('edit_pmj_tgl_rencana').value = data.tanggal_rencana_kembali;
+    document.getElementById('edit_pmj_waktu_pinjam').value = data.waktu_pinjam ? data.waktu_pinjam.substring(0, 5) : '';
+    document.getElementById('edit_pmj_waktu_rencana').value = data.waktu_rencana_kembali ? data.waktu_rencana_kembali.substring(0, 5) : '';
     document.getElementById('edit_pmj_keperluan').value = data.keperluan || '';
     document.getElementById('edit_pmj_status').value = data.status || 'menunggu';
     openModal('modalUbahPeminjaman');

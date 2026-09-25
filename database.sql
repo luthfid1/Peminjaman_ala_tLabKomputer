@@ -2,6 +2,7 @@
 -- Database: db_peminjaman_alat
 -- Proyek: Aplikasi Peminjaman Alat Lab Komputer
 -- UKK Rekayasa Perangkat Lunak 2025/2026 Paket 1
+-- Studi Kasus: Lingkungan Sekolah (Format Waktu: TIME)
 -- ==========================================================
 
 CREATE DATABASE IF NOT EXISTS `db_peminjaman_alat`;
@@ -59,16 +60,16 @@ CREATE TABLE IF NOT EXISTS `alat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
--- 5. Tabel: peminjaman
+-- 5. Tabel: peminjaman (Menggunakan Waktu: TIME)
 -- ----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `peminjaman` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `kode_peminjaman` VARCHAR(50) NOT NULL,
   `id_peminjam` INT(11) NOT NULL,
   `id_user` INT(11) DEFAULT NULL,
-  `tanggal_pinjam` DATE NOT NULL,
-  `tanggal_rencana_kembali` DATE NOT NULL,
-  `tanggal_kembali` DATE DEFAULT NULL,
+  `waktu_pinjam` TIME NOT NULL,
+  `waktu_rencana_kembali` TIME NOT NULL,
+  `waktu_kembali` TIME DEFAULT NULL,
   `jenis_peminjaman` VARCHAR(30) DEFAULT 'Praktek Lab',
   `keperluan` TEXT DEFAULT NULL,
   `status` VARCHAR(30) NOT NULL DEFAULT 'menunggu',
@@ -95,12 +96,12 @@ CREATE TABLE IF NOT EXISTS `detail_peminjaman` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
--- 7. Tabel: pengembalian
+-- 7. Tabel: pengembalian (Menggunakan Waktu: TIME)
 -- ----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pengembalian` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `id_peminjaman` INT(11) NOT NULL,
-  `tanggal_kembali` DATE NOT NULL,
+  `waktu_kembali` TIME NOT NULL,
   `kondisi_kembali` VARCHAR(100) NOT NULL DEFAULT 'Baik',
   `denda` DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   `id_user` INT(11) DEFAULT NULL,
@@ -126,11 +127,8 @@ CREATE TABLE IF NOT EXISTS `log_aktivitas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
--- DATA AWAL (SEED DATA)
+-- SEED DATA
 -- ----------------------------------------------------------
-
--- Akun User: admin (kejur), pengelola (pengelola lab), petugas (laboran), peminjam (siswa)
--- Password default: password123 (hash password_hash('password123', PASSWORD_BCRYPT))
 INSERT INTO `user` (`id_user`, `nama`, `username`, `password`, `role`) VALUES
 (1, 'Admin Pengelola Lab', 'pengelola', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'pengelola'),
 (2, 'Ketua Jurusan RPL', 'kejur', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'admin'),
@@ -138,14 +136,12 @@ INSERT INTO `user` (`id_user`, `nama`, `username`, `password`, `role`) VALUES
 (4, 'Siswa Peminjam Lab', 'siswa', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'peminjam')
 ON DUPLICATE KEY UPDATE `nama` = VALUES(`nama`);
 
--- Data Siswa / Peminjam
 INSERT INTO `peminjam` (`id`, `nama`, `nis`, `kelas`, `jurusan`, `no_telp`, `foto_kartu_pelajar`) VALUES
 (1, 'Luthfi Diandi Rusmana', '10238491', 'XII RPL 4', 'Rekayasa Perangkat Lunak', '081234567890', 'kartu_luthfi.jpg'),
 (2, 'Muhammad Rayhan', '10238492', 'XII RPL 4', 'Rekayasa Perangkat Lunak', '081298765432', 'kartu_rayhan.jpg'),
 (3, 'Siti Nurhaliza', '10238493', 'XII TKJ 2', 'Teknik Komputer dan Jaringan', '085712345678', 'kartu_siti.jpg')
 ON DUPLICATE KEY UPDATE `nama` = VALUES(`nama`);
 
--- Kategori Alat Laboratorium Komputer
 INSERT INTO `kategori` (`id`, `nama_kategori`) VALUES
 (1, 'Perangkat Jaringan (Networking)'),
 (2, 'Komputer & Laptop'),
@@ -154,7 +150,6 @@ INSERT INTO `kategori` (`id`, `nama_kategori`) VALUES
 (5, 'Microcontroller & IoT')
 ON DUPLICATE KEY UPDATE `nama_kategori` = VALUES(`nama_kategori`);
 
--- Alat Laboratorium Komputer
 INSERT INTO `alat` (`id`, `kode`, `id_kategori`, `nama_alat`, `jumlah`, `kondisi`, `deskripsi`) VALUES
 (1, 'ALT-NET-001', 1, 'MikroTik RouterBoard RB750r2', 15, 'Baik', 'Routerboard 5 port Ethernet 10/100 Mbps untuk simulasi routing dan hotspot.'),
 (2, 'ALT-NET-002', 1, 'Cisco Catalyst Switch 2960 24-Port', 6, 'Baik', 'Managed switch 24 port fast ethernet untuk topologi VLAN.'),
@@ -165,6 +160,5 @@ INSERT INTO `alat` (`id`, `kode`, `id_kategori`, `nama_alat`, `jumlah`, `kondisi
 (7, 'ALT-IOT-001', 5, 'Arduino Uno R3 Starter Kit Lengkap', 25, 'Baik', 'Paket modul sensor, breadboard, kabel jumper, dan mikrokontroler Uno R3.')
 ON DUPLICATE KEY UPDATE `nama_alat` = VALUES(`nama_alat`);
 
--- Log Aktivitas Awal
 INSERT INTO `log_aktivitas` (`id_user`, `aktivitas`, `deskripsi`, `waktu`) VALUES
 (1, 'Inisialisasi Sistem', 'Database dan inventaris lab komputer berhasil diinisialisasi', NOW());

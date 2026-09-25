@@ -101,20 +101,20 @@ class Peminjaman {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createPeminjaman($id_peminjam, $id_user, $tanggal_pinjam, $tanggal_rencana_kembali, $jenis_peminjaman, $keperluan, $id_alat, $jumlah, $status = 'menunggu') {
+    public function createPeminjaman($id_peminjam, $id_user, $waktu_pinjam, $waktu_rencana_kembali, $jenis_peminjaman, $keperluan, $id_alat, $jumlah, $status = 'menunggu') {
         $kode_peminjaman = $this->generateKodePeminjaman();
 
         $this->conn->beginTransaction();
         try {
             $query = "INSERT INTO " . $this->table_name . " 
-                      (kode_peminjaman, id_peminjam, id_user, tanggal_pinjam, tanggal_rencana_kembali, jenis_peminjaman, keperluan, status) 
-                      VALUES (:kode, :id_peminjam, :id_user, :tgl_pinjam, :tgl_rencana, :jenis, :keperluan, :status)";
+                      (kode_peminjaman, id_peminjam, id_user, waktu_pinjam, waktu_rencana_kembali, jenis_peminjaman, keperluan, status) 
+                      VALUES (:kode, :id_peminjam, :id_user, :waktu_pinjam, :waktu_rencana, :jenis, :keperluan, :status)";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':kode', $kode_peminjaman);
             $stmt->bindParam(':id_peminjam', $id_peminjam, PDO::PARAM_INT);
             $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-            $stmt->bindParam(':tgl_pinjam', $tanggal_pinjam);
-            $stmt->bindParam(':tgl_rencana', $tanggal_rencana_kembali);
+            $stmt->bindParam(':waktu_pinjam', $waktu_pinjam);
+            $stmt->bindParam(':waktu_rencana', $waktu_rencana_kembali);
             $stmt->bindParam(':jenis', $jenis_peminjaman);
             $stmt->bindParam(':keperluan', $keperluan);
             $stmt->bindParam(':status', $status);
@@ -147,18 +147,18 @@ class Peminjaman {
         }
     }
 
-    public function updatePeminjaman($id, $id_peminjam, $tanggal_pinjam, $tanggal_rencana_kembali, $jenis_peminjaman, $keperluan, $status, $id_alat = null, $jumlah = null) {
+    public function updatePeminjaman($id, $id_peminjam, $waktu_pinjam, $waktu_rencana_kembali, $jenis_peminjaman, $keperluan, $status, $id_alat = null, $jumlah = null) {
         $this->conn->beginTransaction();
         try {
             $query = "UPDATE " . $this->table_name . " 
-                      SET id_peminjam = :id_peminjam, tanggal_pinjam = :tgl_pinjam, 
-                          tanggal_rencana_kembali = :tgl_rencana, jenis_peminjaman = :jenis, 
+                      SET id_peminjam = :id_peminjam, waktu_pinjam = :waktu_pinjam, 
+                          waktu_rencana_kembali = :waktu_rencana, jenis_peminjaman = :jenis, 
                           keperluan = :keperluan, status = :status 
                       WHERE id = :id";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_peminjam', $id_peminjam, PDO::PARAM_INT);
-            $stmt->bindParam(':tgl_pinjam', $tanggal_pinjam);
-            $stmt->bindParam(':tgl_rencana', $tanggal_rencana_kembali);
+            $stmt->bindParam(':waktu_pinjam', $waktu_pinjam);
+            $stmt->bindParam(':waktu_rencana', $waktu_rencana_kembali);
             $stmt->bindParam(':jenis', $jenis_peminjaman);
             $stmt->bindParam(':keperluan', $keperluan);
             $stmt->bindParam(':status', $status);

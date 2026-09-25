@@ -348,8 +348,8 @@ class AdminController {
             $id_peminjam             = (int)($_POST['id_peminjam'] ?? 0);
             $id_alat                 = (int)($_POST['id_alat'] ?? 0);
             $jumlah                  = (int)($_POST['jumlah'] ?? 1);
-            $tanggal_pinjam          = trim($_POST['tanggal_pinjam'] ?? date('Y-m-d'));
-            $tanggal_rencana_kembali = trim($_POST['tanggal_rencana_kembali'] ?? date('Y-m-d', strtotime('+3 days')));
+            $waktu_pinjam            = trim($_POST['waktu_pinjam'] ?? date('H:i:s'));
+            $waktu_rencana_kembali   = trim($_POST['waktu_rencana_kembali'] ?? date('H:i:s', strtotime('+2 hours')));
             $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
             $keperluan               = trim($_POST['keperluan'] ?? '');
             $status                  = trim($_POST['status'] ?? 'disetujui');
@@ -359,8 +359,8 @@ class AdminController {
                     $newId = $this->peminjamanModel->createPeminjaman(
                         $id_peminjam,
                         $this->getUserId(),
-                        $tanggal_pinjam,
-                        $tanggal_rencana_kembali,
+                        $waktu_pinjam,
+                        $waktu_rencana_kembali,
                         $jenis_peminjaman,
                         $keperluan,
                         $id_alat,
@@ -386,8 +386,8 @@ class AdminController {
             $id_peminjam             = (int)($_POST['id_peminjam'] ?? 0);
             $id_alat                 = (int)($_POST['id_alat'] ?? 0);
             $jumlah                  = (int)($_POST['jumlah'] ?? 1);
-            $tanggal_pinjam          = trim($_POST['tanggal_pinjam'] ?? '');
-            $tanggal_rencana_kembali = trim($_POST['tanggal_rencana_kembali'] ?? '');
+            $waktu_pinjam            = trim($_POST['waktu_pinjam'] ?? '');
+            $waktu_rencana_kembali   = trim($_POST['waktu_rencana_kembali'] ?? '');
             $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
             $keperluan               = trim($_POST['keperluan'] ?? '');
             $status                  = trim($_POST['status'] ?? 'menunggu');
@@ -397,8 +397,8 @@ class AdminController {
                     $this->peminjamanModel->updatePeminjaman(
                         $id,
                         $id_peminjam,
-                        $tanggal_pinjam,
-                        $tanggal_rencana_kembali,
+                        $waktu_pinjam,
+                        $waktu_rencana_kembali,
                         $jenis_peminjaman,
                         $keperluan,
                         $status,
@@ -459,7 +459,7 @@ class AdminController {
     public function tambah_pengembalian() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_peminjaman   = (int)($_POST['id_peminjaman'] ?? 0);
-            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? date('Y-m-d'));
+            $waktu_kembali   = trim($_POST['waktu_kembali'] ?? date('H:i:s'));
             $kondisi_kembali = trim($_POST['kondisi_kembali'] ?? 'Baik');
             $denda           = (float)($_POST['denda'] ?? 0);
 
@@ -467,7 +467,7 @@ class AdminController {
                 try {
                     $newId = $this->pengembalianModel->createPengembalian(
                         $id_peminjaman,
-                        $tanggal_kembali,
+                        $waktu_kembali,
                         $kondisi_kembali,
                         $denda,
                         $this->getUserId()
@@ -488,13 +488,13 @@ class AdminController {
     public function ubah_pengembalian() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id              = (int)($_POST['id'] ?? 0);
-            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? date('Y-m-d'));
+            $waktu_kembali   = trim($_POST['waktu_kembali'] ?? date('H:i:s'));
             $kondisi_kembali = trim($_POST['kondisi_kembali'] ?? 'Baik');
             $denda           = (float)($_POST['denda'] ?? 0);
 
             if ($id > 0) {
                 try {
-                    $this->pengembalianModel->updatePengembalian($id, $tanggal_kembali, $kondisi_kembali, $denda);
+                    $this->pengembalianModel->updatePengembalian($id, $waktu_kembali, $kondisi_kembali, $denda);
                     $this->userModel->recordLog($this->getUserId(), 'Mengubah Pengembalian', "Pengembalian ID #{$id}");
                     header('Location: index.php?c=admin&a=pengembalian&status=updated');
                     exit;
