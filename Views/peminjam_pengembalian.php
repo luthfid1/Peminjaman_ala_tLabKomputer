@@ -1,23 +1,16 @@
 <?php
 $activePage = 'pengembalian';
-$pageTitle = 'Pengembalian Saya - NARA BAND';
-require_once 'Views/peminjam_header.php';
+$pageTitle = 'Pengembalian Saya - Lab Komputer';
+require_once __DIR__ . '/peminjam_header.php';
 ?>
 
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label">ARSIP & SIRKULASI</span>
+        <span class="admin-date-label">RIWAYAT & ARSIP PENGEMBALIAN</span>
         <h1 class="admin-title">Pengembalian Saya</h1>
-        <p class="admin-subtitle">Daftar instrumen musik yang telah Anda kembalikan beserta rincian denda keterlambatan jika ada.</p>
+        <p class="admin-subtitle">Daftar perangkat laboratorium komputer yang telah dikembalikan, status kondisi fisik alat, serta informasi denda (jika ada).</p>
     </div>
 </div>
-
-<!-- ALERTS -->
-<?php if (!empty($message)): ?>
-    <div class="auth-alert auth-alert-success" style="margin-bottom: 20px;">
-        <span><?= htmlspecialchars($message) ?></span>
-    </div>
-<?php endif; ?>
 
 <!-- INFO BOX -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
@@ -29,7 +22,7 @@ require_once 'Views/peminjam_header.php';
         </div>
         <div>
             <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Alat Dikembalikan</span>
-            <div style="font-size: 20px; font-weight: 700; color: #0f172a;"><?= count($daftarPengembalian) ?> Transaksi</div>
+            <div style="font-size: 20px; font-weight: 700; color: #0f172a;"><?= count($daftarPengembalian) ?> Transaksi Selesai</div>
         </div>
     </div>
 
@@ -44,7 +37,7 @@ require_once 'Views/peminjam_header.php';
         <div>
             <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Akumulasi Denda</span>
             <div style="font-size: 20px; font-weight: 700; color: <?= $totalDenda > 0 ? '#b91c1c' : '#0f172a' ?>;">
-                Rp <?= number_format($totalDenda, 0, ',', '.') ?>
+                Rp<?= number_format($totalDenda, 0, ',', '.') ?>
             </div>
         </div>
     </div>
@@ -54,8 +47,8 @@ require_once 'Views/peminjam_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Catatan Pengembalian Alat</h3>
-            <p class="inventory-sub">Total <?= count($daftarPengembalian) ?> pengembalian tercatat.</p>
+            <h3 class="inventory-title">Catatan Pengembalian Alat Lab</h3>
+            <p class="inventory-sub">Total <?= count($daftarPengembalian) ?> riwayat pengembalian alat.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="peminjam">
@@ -66,7 +59,7 @@ require_once 'Views/peminjam_header.php';
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="text" name="search" placeholder="Cari nama alat atau catatan..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <input type="text" name="search" placeholder="Cari kode atau alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
         </form>
     </div>
 
@@ -74,19 +67,19 @@ require_once 'Views/peminjam_header.php';
         <thead>
             <tr>
                 <th>No</th>
-                <th>Alat Musik</th>
-                <th>Jumlah</th>
-                <th>Tgl Mulai Pinjam</th>
-                <th>Tgl Dikembalikan</th>
+                <th>Kode & Alat Lab</th>
+                <th>Kategori & Jml</th>
+                <th>Waktu Pinjam</th>
+                <th>Waktu Dikembalikan</th>
+                <th>Kondisi Kembali</th>
                 <th>Denda</th>
-                <th>Keterangan / Kondisi Pengembalian</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($daftarPengembalian)): ?>
                 <tr>
                     <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Belum ada riwayat pengembalian alat musik.
+                        Belum ada riwayat pengembalian alat lab.
                     </td>
                 </tr>
             <?php else: ?>
@@ -95,35 +88,33 @@ require_once 'Views/peminjam_header.php';
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td class="col-instrument-name">
-                            <?= htmlspecialchars($pg['nama_alat'] ?? 'Instrumen') ?>
-                            <div style="font-size: 12px; font-weight: 400; color: var(--text-muted);">
-                                <?= htmlspecialchars($pg['nama_kategori'] ?? 'Kategori') ?>
-                            </div>
-                        </td>
-                        <td><strong><?= (int)($pg['jumlah'] ?? 1) ?></strong> unit</td>
-                        <td><?= !empty($pg['tanggal_pinjam']) ? date('d M Y', strtotime($pg['tanggal_pinjam'])) : '-' ?></td>
                         <td>
-                            <strong style="color: var(--teal-dark);"><?= !empty($pg['tanggal_pengembalian']) ? date('d M Y', strtotime($pg['tanggal_pengembalian'])) : '-' ?></strong>
-                            <?php if (!empty($pg['tanggal_kembali'])): ?>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-                                    Tenggat: <?= date('d M Y', strtotime($pg['tanggal_kembali'])) ?>
-                                </div>
+                            <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: var(--primary-teal);"><?= htmlspecialchars($pg['kode_peminjaman'] ?? '-') ?></div>
+                            <strong style="color: var(--primary-navy);"><?= htmlspecialchars($pg['nama_alat'] ?? 'Alat Lab') ?></strong>
+                            <div style="font-size: 11px; color: var(--text-muted);"><?= htmlspecialchars($pg['kode_alat'] ?? '') ?></div>
+                        </td>
+                        <td>
+                            <?= htmlspecialchars($pg['nama_kategori'] ?? 'Umum') ?>
+                            <div style="font-size: 11px; color: var(--text-muted);"><?= (int)($pg['jumlah'] ?? 1) ?> unit</div>
+                        </td>
+                        <td style="white-space: nowrap;"><?= !empty($pg['waktu_pinjam']) ? date('H:i', strtotime($pg['waktu_pinjam'])) . ' WIB' : '-' ?></td>
+                        <td style="white-space: nowrap;">
+                            <strong style="color: var(--teal-dark);"><?= !empty($pg['waktu_kembali']) ? date('H:i', strtotime($pg['waktu_kembali'])) . ' WIB' : '-' ?></strong>
+                            <?php if (!empty($pg['waktu_rencana_kembali'])): ?>
+                                <div style="font-size: 11px; color: var(--text-muted);">Rencana: <?= date('H:i', strtotime($pg['waktu_rencana_kembali'])) ?> WIB</div>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #e0f2fe; color: #0369a1;">
+                                <?= htmlspecialchars($pg['kondisi_kembali'] ?? 'Baik') ?>
+                            </span>
                         </td>
                         <td>
                             <?php if ($hasDenda): ?>
-                                <span style="display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; background: #fee2e2; color: #b91c1c;">
-                                    Rp <?= number_format($pg['denda'], 0, ',', '.') ?>
-                                </span>
+                                <strong style="color: #dc2626;">Rp<?= number_format($pg['denda'], 0, ',', '.') ?></strong>
                             <?php else: ?>
-                                <span style="color: #15803d; font-size: 12px; font-weight: 600; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">
-                                    Rp 0 (Tepat Waktu)
-                                </span>
+                                <span style="color: var(--text-muted); font-size: 12px;">Rp0 (Nihil)</span>
                             <?php endif; ?>
-                        </td>
-                        <td>
-                            <?= !empty($pg['keterangan']) ? htmlspecialchars($pg['keterangan']) : '<span style="color: var(--text-muted);">-</span>' ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -132,4 +123,4 @@ require_once 'Views/peminjam_header.php';
     </table>
 </section>
 
-<?php require_once 'Views/peminjam_footer.php'; ?>
+<?php require_once __DIR__ . '/peminjam_footer.php'; ?>

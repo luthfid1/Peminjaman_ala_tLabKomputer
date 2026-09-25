@@ -35,18 +35,54 @@ class Peminjam {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp = '', $foto_kartu_pelajar = '') {
-        $query = "INSERT INTO " . $this->table_name . " (nama, nis, kelas, jurusan, no_telp, foto_kartu_pelajar) 
-                  VALUES (:nama, :nis, :kelas, :jurusan, :no_telp, :foto_kartu_pelajar)";
+    public function getPeminjamByUserId($userId) {
+        try {
+            $query = "SELECT * FROM " . $this->table_name . " WHERE id_user = :userId LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($res) return $res;
+        } catch (Exception $e) {}
+        return null;
+    }
+
+    public function getPeminjamByNama($nama) {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE nama = :nama ORDER BY id DESC LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':nama', $nama);
-        $stmt->bindParam(':nis', $nis);
-        $stmt->bindParam(':kelas', $kelas);
-        $stmt->bindParam(':jurusan', $jurusan);
-        $stmt->bindParam(':no_telp', $no_telp);
-        $stmt->bindParam(':foto_kartu_pelajar', $foto_kartu_pelajar);
         $stmt->execute();
-        return $this->conn->lastInsertId();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp = '', $foto_kartu_pelajar = '', $id_user = null) {
+        try {
+            $query = "INSERT INTO " . $this->table_name . " (id_user, nama, nis, kelas, jurusan, no_telp, foto_kartu_pelajar) 
+                      VALUES (:id_user, :nama, :nis, :kelas, :jurusan, :no_telp, :foto_kartu_pelajar)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+            $stmt->bindParam(':nama', $nama);
+            $stmt->bindParam(':nis', $nis);
+            $stmt->bindParam(':kelas', $kelas);
+            $stmt->bindParam(':jurusan', $jurusan);
+            $stmt->bindParam(':no_telp', $no_telp);
+            $stmt->bindParam(':foto_kartu_pelajar', $foto_kartu_pelajar);
+            $stmt->execute();
+            return $this->conn->lastInsertId();
+        } catch (Exception $e) {
+            // Fallback jika kolom id_user belum tersedia
+            $query = "INSERT INTO " . $this->table_name . " (nama, nis, kelas, jurusan, no_telp, foto_kartu_pelajar) 
+                      VALUES (:nama, :nis, :kelas, :jurusan, :no_telp, :foto_kartu_pelajar)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':nama', $nama);
+            $stmt->bindParam(':nis', $nis);
+            $stmt->bindParam(':kelas', $kelas);
+            $stmt->bindParam(':jurusan', $jurusan);
+            $stmt->bindParam(':no_telp', $no_telp);
+            $stmt->bindParam(':foto_kartu_pelajar', $foto_kartu_pelajar);
+            $stmt->execute();
+            return $this->conn->lastInsertId();
+        }
     }
 
     public function updatePeminjam($id, $nama, $nis, $kelas, $jurusan, $no_telp = '', $foto_kartu_pelajar = null) {

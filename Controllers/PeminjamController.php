@@ -1,11 +1,11 @@
 <?php
 
-require_once 'Models/User.php';
-require_once 'Models/Alat.php';
-require_once 'Models/Kategori.php';
-require_once 'Models/Peminjaman.php';
-require_once 'Models/Pengembalian.php';
-require_once 'Models/Pembayaran.php';
+require_once __DIR__ . '/../models/user.php';
+require_once __DIR__ . '/../models/alat.php';
+require_once __DIR__ . '/../models/kategori.php';
+require_once __DIR__ . '/../models/peminjaman.php';
+require_once __DIR__ . '/../models/pengembalian.php';
+require_once __DIR__ . '/../models/peminjam.php';
 
 class PeminjamController {
     private $userModel;
@@ -13,10 +13,13 @@ class PeminjamController {
     private $kategoriModel;
     private $peminjamanModel;
     private $pengembalianModel;
-    private $pembayaranModel;
+    private $peminjamProfileModel;
 
     public function __construct() {
-        // Proteksi hak akses role Peminjam
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         if (!isset($_SESSION['user'])) {
             header('Location: index.php?c=auth&a=login');
             exit;
@@ -24,11 +27,11 @@ class PeminjamController {
 
         $role = strtolower(trim($_SESSION['user']['role'] ?? ''));
         if ($role !== 'peminjam') {
-            if ($role === 'admin') {
+            if ($role === 'pengelola' || $role === 'admin') {
                 header('Location: index.php?c=admin&a=dashboard');
                 exit;
             } elseif ($role === 'petugas') {
-                header('Location: index.php?c=petugas&a=dashboard');
+                header('Location: index.php?c=admin&a=peminjaman');
                 exit;
             } else {
                 header('Location: index.php');
@@ -36,33 +39,66 @@ class PeminjamController {
             }
         }
 
-        $this->userModel         = new User();
-        $this->alatModel         = new Alat();
-        $this->kategoriModel     = new Kategori();
-        $this->peminjamanModel   = new Peminjaman();
-        $this->pengembalianModel = new Pengembalian();
-        $this->pembayaranModel   = new Pembayaran();
+        $this->userModel            = new User();
+        $this->alatModel            = new Alat();
+        $this->kategoriModel        = new Kategori();
+        $this->peminjamanModel      = new Peminjaman();
+        $this->pengembalianModel    = new Pengembalian();
+        $this->peminjamProfileModel = new Peminjam();
+    }
+
+    private function getUserId() {
+        return (int)($_SESSION['user']['id_user'] ?? $_SESSION['user']['id_users'] ?? 0);
+    }
+
+    private function getPeminjamProfile() {
+        $userId = $this->getUserId();
+        $nama   = $_SESSION['user']['nama'] ?? $_SESSION['user']['nama_lengkap'] ?? 'Siswa';
+
+        $profile = $this->peminjamProfileModel->getPeminjamByUserId($userId);
+        if (!$profile) {
+            $profile = $this->peminjamProfileModel->getPeminjamByNama($nama);
+        }
+
+        // Jika siswa belum ada di tabel peminjam (misal akun demo bawaan), buatkan profil otomatis
+        if (!$profile) {
+            $newId = $this->peminjamProfileModel->createPeminjam(
+                $nama,
+                '1023' . rand(1000, 9999),
+                'XII RPL 1',
+                'Rekayasa Perangkat Lunak',
+                '08123456789',
+                '',
+                $userId
+            );
+            $profile = $this->peminjamProfileModel->getPeminjamById($newId);
+        }
+
+        return $profile;
     }
 
     // ==========================================
-    // 1. DASHBOARD PEMINJAM
+    // 1. DASHBOARD SISWA
     // ==========================================
     public function dashboard() {
-        $userId = $_SESSION['user']['id_users'];
+        $profile = $this->getPeminjamProfile();
+        $idPeminjam = (int)$profile['id'];
 
-        $totalPengajuan = $this->peminjamanModel->countUserPeminjamanByStatus($userId, 'menunggu');
-        $totalDipinjam  = $this->peminjamanModel->countUserPeminjamanByStatus($userId, 'dipinjam');
-        $totalKembali   = $this->peminjamanModel->countUserPeminjamanByStatus($userId, 'dikembalikan');
-        $totalDenda     = $this->pengembalianModel->getTotalDendaByUser($userId);
+        $totalMenunggu  = $this->peminjamanModel->countPeminjamPeminjamanByStatus($idPeminjam, 'menunggu');
+        $totalDipinjam  = $this->peminjamanModel->countPeminjamPeminjamanByStatus($idPeminjam, ['disetujui', 'dipinjam']);
+        $totalSelesai   = $this->peminjamanModel->countPeminjamPeminjamanByStatus($idPeminjam, 'dikembalikan');
+        $totalDenda     = $this->pengembalianModel->getTotalDendaByPeminjamId($idPeminjam);
 
-        $daftarPinjamTerbaru = $this->peminjamanModel->getPeminjamanByUser($userId);
-        $alatPopuler = $this->alatModel->getAllAlat();
+        $daftarPinjamTerbaru = $this->peminjamanModel->getPeminjamanByPeminjamId($idPeminjam);
+        $alatTersedia = $this->alatModel->getAllAlat();
 
-        require_once 'Views/peminjam_dashboard.php';
+        $tglStr = date('l, d F Y');
+
+        require_once __DIR__ . '/../views/peminjam_dashboard.php';
     }
 
     // ==========================================
-    // 2. DAFTAR ALAT MUSIK (KATALOG LENGKAP)
+    // 2. KATALOG ALAT LAB KOMPUTER
     // ==========================================
     public function daftar_alat() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -75,112 +111,82 @@ class PeminjamController {
             }));
         }
         $daftarKategori = $this->kategoriModel->getAllKategori();
+        $profile = $this->getPeminjamProfile();
 
-        require_once 'Views/peminjam_alat.php';
-    }
-
-    public function katalog() {
-        $this->daftar_alat();
+        require_once __DIR__ . '/../views/peminjam_alat.php';
     }
 
     // ==========================================
-    // 3. PEMINJAMAN SAYA & RIWAYAT PENGAJUAN
+    // 3. DAFTAR PEMINJAMAN SAYA
     // ==========================================
     public function peminjaman() {
-        $userId = $_SESSION['user']['id_users'];
+        $profile = $this->getPeminjamProfile();
+        $idPeminjam = (int)$profile['id'];
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $statusFilter = isset($_GET['status_filter']) ? trim($_GET['status_filter']) : '';
 
         $message = '';
         $error = '';
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'requested') $message = 'Pengajuan peminjaman dan catatan pembayaran berhasil dibuat! Mohon menunggu persetujuan petugas.';
-            if ($_GET['status'] === 'bukti_uploaded') $message = 'Bukti pembayaran transfer berhasil diunggah! Status pembayaran sedang menunggu konfirmasi admin/petugas.';
-            if ($_GET['status'] === 'stok_kurang') $error = 'Stok alat tidak mencukupi untuk jumlah yang Anda minta!';
-            if ($_GET['status'] === 'cancelled') $message = 'Pengajuan peminjaman berhasil dibatalkan.';
-            if ($_GET['status'] === 'error') $error = 'Gagal memproses permintaan peminjaman.';
+            if ($_GET['status'] === 'requested') $message = 'Pengajuan peminjaman alat berhasil diajukan! Menunggu persetujuan petugas lab.';
+            if ($_GET['status'] === 'cancelled') $message = 'Permohonan peminjaman berhasil dibatalkan.';
+            if ($_GET['status'] === 'stok_kurang') $error = 'Stok alat yang diminta tidak mencukupi atau sedang kosong!';
+            if ($_GET['status'] === 'waktu_invalid') $error = 'Waktu rencana kembali tidak boleh sama atau mendahului waktu pinjam!';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan sistem saat memproses peminjaman.';
         }
 
-        $daftarPeminjaman = $this->peminjamanModel->getPeminjamanByUser($userId, $keyword);
+        $daftarPeminjaman = $this->peminjamanModel->getPeminjamanByPeminjamId($idPeminjam, $keyword, $statusFilter);
         $daftarAlat = $this->alatModel->getAllAlat();
 
-        require_once 'Views/peminjam_peminjaman.php';
+        require_once __DIR__ . '/../views/peminjam_peminjaman.php';
     }
 
     // ==========================================
-    // PROSES AJUKAN PEMINJAMAN & PEMBAYARAN
+    // 4. PROSES AJUKAN PEMINJAMAN
     // ==========================================
     public function ajukan_peminjaman() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId           = $_SESSION['user']['id_users'];
-            $id_alat          = (int)($_POST['id_alat'] ?? 0);
-            $jumlah           = (int)($_POST['jumlah'] ?? 1);
-            $tanggal_pinjam   = trim($_POST['tanggal_pinjam'] ?? date('Y-m-d'));
-            $tanggal_kembali  = trim($_POST['tanggal_kembali'] ?? '');
-            $metodePembayaran = trim($_POST['metode_pembayaran'] ?? 'di_tempat');
+            $profile               = $this->getPeminjamProfile();
+            $idPeminjam            = (int)$profile['id'];
+            $id_alat               = (int)($_POST['id_alat'] ?? 0);
+            $jumlah                = max(1, (int)($_POST['jumlah'] ?? 1));
+            $waktu_pinjam          = trim($_POST['waktu_pinjam'] ?? date('H:i'));
+            $waktu_rencana_kembali = trim($_POST['waktu_rencana_kembali'] ?? date('H:i', strtotime('+2 hours')));
+            $jenis_peminjaman      = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $keperluan             = trim($_POST['keperluan'] ?? '');
 
-            if (!in_array($metodePembayaran, ['di_tempat', 'website'])) {
-                $metodePembayaran = 'di_tempat';
-            }
-
-            if ($id_alat > 0 && $jumlah > 0 && !empty($tanggal_kembali)) {
+            if ($id_alat > 0) {
                 $alat = $this->alatModel->getAlatById($id_alat);
-                if (!$alat || $alat['jumlah_stok'] < $jumlah) {
+                if (!$alat || $alat['jumlah'] < $jumlah) {
                     header('Location: index.php?c=peminjam&a=peminjaman&status=stok_kurang');
                     exit;
                 }
 
-                // Kalkulasi durasi dan total biaya sewa
-                $d1 = strtotime($tanggal_pinjam);
-                $d2 = strtotime($tanggal_kembali);
-                $diffDays = ($d2 >= $d1) ? max(1, (int)round(($d2 - $d1) / 86400)) : 1;
-                $hargaPerHari = (float)($alat['harga_sewa'] ?? 0);
-                $totalBayar = $hargaPerHari * $jumlah * $diffDays;
-
-                // Handle upload bukti pembayaran jika online (website)
-                $namaFileBukti = null;
-                $statusPembayaran = 'menunggu_pembayaran';
-                $tglPembayaran = null;
-
-                if ($metodePembayaran === 'website' && isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] === UPLOAD_ERR_OK) {
-                    $ext = strtolower(pathinfo($_FILES['bukti_pembayaran']['name'], PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'webp'];
-                    if (in_array($ext, $allowed)) {
-                        $targetDir = 'Assets/uploads/bukti/';
-                        if (!is_dir($targetDir)) {
-                            mkdir($targetDir, 0777, true);
-                        }
-                        $namaFileBukti = 'bukti_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
-                        if (move_uploaded_file($_FILES['bukti_pembayaran']['tmp_name'], $targetDir . $namaFileBukti)) {
-                            $statusPembayaran = 'menunggu_konfirmasi';
-                            $tglPembayaran = date('Y-m-d H:i:s');
-                        } else {
-                            $namaFileBukti = null;
-                        }
-                    }
-                }
+                // Format waktu ke format TIME MySQL: HH:MM:SS
+                if (strlen($waktu_pinjam) === 5) $waktu_pinjam .= ':00';
+                if (strlen($waktu_rencana_kembali) === 5) $waktu_rencana_kembali .= ':00';
 
                 try {
-                    // Simpan peminjaman dengan status default 'menunggu'
-                    $idPeminjaman = $this->peminjamanModel->createPeminjaman($userId, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, 'menunggu');
-                    if ($idPeminjaman) {
-                        // Catat pembayaran transaksi
-                        $this->pembayaranModel->createPembayaran(
-                            $idPeminjaman,
-                            $totalBayar,
-                            $metodePembayaran,
-                            $statusPembayaran,
-                            $namaFileBukti,
-                            $tglPembayaran
-                        );
+                    $newId = $this->peminjamanModel->createPeminjaman(
+                        $idPeminjam,
+                        null, // Belum disetujui petugas (id_user petugas null)
+                        $waktu_pinjam,
+                        $waktu_rencana_kembali,
+                        $jenis_peminjaman,
+                        $keperluan,
+                        $id_alat,
+                        $jumlah,
+                        'menunggu'
+                    );
 
-                        $metodeLabel = ($metodePembayaran === 'website') ? 'Transfer Website' : 'Di Tempat (Offline)';
-                        $this->userModel->recordLog($userId, 'Mengajukan peminjaman alat: ' . ($alat['nama_alat'] ?? "Alat ID $id_alat") . " ($jumlah unit, $metodeLabel)");
-                        header('Location: index.php?c=peminjam&a=peminjaman&status=requested');
-                        exit;
-                    } else {
-                        header('Location: index.php?c=peminjam&a=peminjaman&status=error');
-                        exit;
-                    }
+                    $this->userModel->recordLog(
+                        $this->getUserId(),
+                        'Pengajuan Peminjaman Alat',
+                        "Siswa {$profile['nama']} mengajukan peminjaman: {$alat['nama_alat']} ({$jumlah} unit)"
+                    );
+
+                    header('Location: index.php?c=peminjam&a=peminjaman&status=requested');
+                    exit;
                 } catch (Exception $e) {
                     header('Location: index.php?c=peminjam&a=peminjaman&status=error');
                     exit;
@@ -192,52 +198,23 @@ class PeminjamController {
     }
 
     // ==========================================
-    // UPLOAD BUKTI PEMBAYARAN TRANSFER (SUSULAN)
-    // ==========================================
-    public function upload_bukti() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId       = $_SESSION['user']['id_users'];
-            $idPeminjaman = (int)($_POST['id_peminjaman'] ?? 0);
-
-            if ($idPeminjaman > 0 && isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] === UPLOAD_ERR_OK) {
-                // Pastikan transaksi ini milik user
-                $peminjaman = $this->peminjamanModel->getPeminjamanById($idPeminjaman);
-                if ($peminjaman && (int)$peminjaman['id_user'] === (int)$userId) {
-                    $ext = strtolower(pathinfo($_FILES['bukti_transfer']['name'], PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'webp'];
-                    if (in_array($ext, $allowed)) {
-                        $targetDir = 'Assets/uploads/bukti/';
-                        if (!is_dir($targetDir)) {
-                            mkdir($targetDir, 0777, true);
-                        }
-                        $namaFile = 'bukti_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
-                        if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetDir . $namaFile)) {
-                            $this->pembayaranModel->uploadBukti($idPeminjaman, $namaFile);
-                            $this->userModel->recordLog($userId, "Mengunggah bukti pembayaran untuk peminjaman #$idPeminjaman");
-                            header('Location: index.php?c=peminjam&a=peminjaman&status=bukti_uploaded');
-                            exit;
-                        }
-                    }
-                }
-            }
-        }
-        header('Location: index.php?c=peminjam&a=peminjaman');
-        exit;
-    }
-
-    // ==========================================
-    // BATALKAN PENGAJUAN PEMINJAMAN
+    // 5. BATALKAN PEMINJAMAN
     // ==========================================
     public function batalkan_peminjaman() {
         $id = (int)($_GET['id'] ?? 0);
-        $userId = $_SESSION['user']['id_users'];
+        $profile = $this->getPeminjamProfile();
+        $idPeminjam = (int)$profile['id'];
 
         if ($id > 0) {
             try {
-                $peminjaman = $this->peminjamanModel->getPeminjamanById($id);
-                if ($peminjaman && $peminjaman['id_user'] == $userId && $peminjaman['status'] === 'menunggu') {
-                    $this->peminjamanModel->batalkanPeminjamanByUser($id, $userId);
-                    $this->userModel->recordLog($userId, 'Membatalkan pengajuan peminjaman #' . $id);
+                $pmj = $this->peminjamanModel->getPeminjamanById($id);
+                if ($pmj && (int)$pmj['id_peminjam'] === $idPeminjam && $pmj['status'] === 'menunggu') {
+                    $this->peminjamanModel->batalkanPeminjamanByPeminjam($id, $idPeminjam);
+                    $this->userModel->recordLog(
+                        $this->getUserId(),
+                        'Batalkan Peminjaman',
+                        "Siswa membatalkan permohonan #{$pmj['kode_peminjaman']}"
+                    );
                     header('Location: index.php?c=peminjam&a=peminjaman&status=cancelled');
                     exit;
                 }
@@ -251,52 +228,16 @@ class PeminjamController {
     }
 
     // ==========================================
-    // KEMBALIKAN ALAT MUSIK (PEMINJAM)
-    // ==========================================
-    public function kembalikan_alat() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $userId            = $_SESSION['user']['id_users'];
-            $id_peminjaman     = (int)($_POST['id_peminjaman'] ?? 0);
-            $tanggalPengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
-            $keterangan        = trim($_POST['keterangan'] ?? 'Pengembalian oleh peminjam');
-
-            if ($id_peminjaman > 0) {
-                try {
-                    $peminjaman = $this->peminjamanModel->getPeminjamanById($id_peminjaman);
-                    if ($peminjaman && $peminjaman['id_user'] == $userId && $peminjaman['status'] === 'dipinjam') {
-                        $result = $this->pengembalianModel->createPengembalian($id_peminjaman, $tanggalPengembalian, 0, $keterangan);
-                        if ($result) {
-                            $this->userModel->recordLog($userId, 'Mengembalikan alat musik: ' . ($peminjaman['nama_alat'] ?? "Alat ID {$peminjaman['id_alat']}"));
-                            header('Location: index.php?c=peminjam&a=pengembalian&status=returned');
-                            exit;
-                        }
-                    }
-                } catch (Exception $e) {
-                    header('Location: index.php?c=peminjam&a=peminjaman&status=error');
-                    exit;
-                }
-            }
-        }
-        header('Location: index.php?c=peminjam&a=peminjaman');
-        exit;
-    }
-
-    // ==========================================
-    // RIWAYAT PENGEMBALIAN SAYA & INFO DENDA
+    // 6. RIWAYAT PENGEMBALIAN SAYA
     // ==========================================
     public function pengembalian() {
-        $userId = $_SESSION['user']['id_users'];
+        $profile = $this->getPeminjamProfile();
+        $idPeminjam = (int)$profile['id'];
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-        $message = '';
-        if (isset($_GET['status']) && $_GET['status'] === 'returned') {
-            $message = 'Alat musik berhasil dikembalikan! Riwayat transaksi pengembalian Anda telah diperbarui.';
-        }
+        $daftarPengembalian = $this->pengembalianModel->getPengembalianByPeminjamId($idPeminjam, $keyword);
+        $totalDenda = $this->pengembalianModel->getTotalDendaByPeminjamId($idPeminjam);
 
-        $daftarPengembalian = $this->pengembalianModel->getPengembalianByUser($userId, $keyword);
-        $totalDenda = $this->pengembalianModel->getTotalDendaByUser($userId);
-
-        require_once 'Views/peminjam_pengembalian.php';
+        require_once __DIR__ . '/../views/peminjam_pengembalian.php';
     }
-
 }

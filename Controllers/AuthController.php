@@ -168,7 +168,7 @@ class AuthController {
             header('Location: index.php?c=admin&a=dashboard');
             exit;
         } elseif ($role === 'petugas') {
-            header('Location: index.php?c=admin&a=peminjaman');
+            header('Location: index.php?c=petugas&a=dashboard');
             exit;
         } elseif ($role === 'peminjam') {
             header('Location: index.php?c=peminjam&a=dashboard');

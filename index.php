@@ -25,6 +25,7 @@ switch ($controller) {
         $home->index();
         break;
 
+    case 'pengelola':
     case 'admin':
         require_once __DIR__ . '/controllers/admincontroller.php';
         $admin = new AdminController();
@@ -111,6 +112,74 @@ switch ($controller) {
 
             default:
                 $admin->dashboard();
+                break;
+        }
+        break;
+
+    case 'petugas':
+        require_once __DIR__ . '/controllers/petugascontroller.php';
+        $petugas = new PetugasController();
+
+        switch ($action) {
+            case 'dashboard':
+                $petugas->dashboard();
+                break;
+            case 'peminjaman':
+                $petugas->peminjaman();
+                break;
+            case 'setujui_peminjaman':
+                $petugas->setujui_peminjaman();
+                break;
+            case 'tolak_peminjaman':
+                $petugas->tolak_peminjaman();
+                break;
+            case 'serahkan_alat':
+                $petugas->serahkan_alat();
+                break;
+            case 'pengembalian':
+                $petugas->pengembalian();
+                break;
+            case 'tambah_pengembalian':
+                $petugas->tambah_pengembalian();
+                break;
+            case 'alat':
+                $petugas->alat();
+                break;
+            case 'laporan':
+                $petugas->laporan();
+                break;
+            default:
+                $petugas->dashboard();
+                break;
+        }
+        break;
+
+    case 'peminjam':
+        require_once __DIR__ . '/controllers/peminjamcontroller.php';
+        $peminjam = new PeminjamController();
+
+        switch ($action) {
+            case 'dashboard':
+                $peminjam->dashboard();
+                break;
+            case 'daftar_alat':
+            case 'katalog':
+                $peminjam->daftar_alat();
+                break;
+            case 'peminjaman':
+                $peminjam->peminjaman();
+                break;
+            case 'ajukan_peminjaman':
+                $peminjam->ajukan_peminjaman();
+                break;
+            case 'batalkan_peminjaman':
+                $peminjam->batalkan_peminjaman();
+                break;
+            case 'pengembalian':
+                $peminjam->pengembalian();
+                break;
+            default:
+                $peminjam->dashboard();
                 break;
         }
         break;

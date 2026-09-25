@@ -1,17 +1,17 @@
 <?php
 $activePage = 'peminjaman';
-$pageTitle = 'Peminjaman Saya - NARA BAND';
-require_once 'Views/peminjam_header.php';
+$pageTitle = 'Peminjaman Saya - Lab Komputer';
+require_once __DIR__ . '/peminjam_header.php';
 ?>
 
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label">STATUS & TRANSAKSI</span>
+        <span class="admin-date-label">TRANSAKSI & PENGAJUAN LAB</span>
         <h1 class="admin-title">Peminjaman Saya</h1>
-        <p class="admin-subtitle">Pantau seluruh status permohonan pinjam alat musik Anda mulai dari pengajuan hingga persetujuan.</p>
+        <p class="admin-subtitle">Pantau status permohonan pinjam alat laboratorium komputer Anda dari tahap pengajuan hingga pengembalian.</p>
     </div>
-    <button type="button" class="btn-add-instrument" onclick="openModalTambahPinjam()">
-        + Ajukan Peminjaman Baru
+    <button type="button" class="btn-add-instrument" onclick="openModal('modalAjukanPinjam')">
+        + Ajukan Peminjaman
     </button>
 </div>
 
@@ -32,8 +32,8 @@ require_once 'Views/peminjam_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Daftar Pengajuan & Peminjaman</h3>
-            <p class="inventory-sub">Total <?= count($daftarPeminjaman) ?> transaksi peminjaman tercatat.</p>
+            <h3 class="inventory-title">Daftar Peminjaman Alat Lab</h3>
+            <p class="inventory-sub">Total <?= count($daftarPeminjaman) ?> riwayat transaksi peminjaman.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="peminjam">
@@ -44,7 +44,7 @@ require_once 'Views/peminjam_header.php';
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="text" name="search" placeholder="Cari nama alat musik atau status..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <input type="text" name="search" placeholder="Cari kode atau alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
         </form>
     </div>
 
@@ -52,19 +52,20 @@ require_once 'Views/peminjam_header.php';
         <thead>
             <tr>
                 <th>No</th>
-                <th>Alat Musik</th>
-                <th>Jumlah</th>
-                <th>Tgl Mulai Pinjam</th>
-                <th>Tgl Rencana Kembali</th>
-                <th>Status Pengajuan</th>
+                <th>Kode & Alat Lab</th>
+                <th>Keperluan / Jenis</th>
+                <th>Jml</th>
+                <th>Waktu Pinjam</th>
+                <th>Rencana Kembali</th>
+                <th>Status</th>
                 <th style="text-align: right;">Aksi</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($daftarPeminjaman)): ?>
                 <tr>
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Belum ada riwayat peminjaman. Silakan ajukan peminjaman alat musik melalui menu <a href="index.php?c=peminjam&a=katalog" style="color: var(--teal-dark); font-weight: 600;">Katalog Alat</a>.
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Belum ada riwayat peminjaman. Klik "+ Ajukan Peminjaman" atau telusuri <a href="index.php?c=peminjam&a=daftar_alat" style="color: var(--teal-dark); font-weight: 600;">Katalog Alat Lab</a>.
                     </td>
                 </tr>
             <?php else: ?>
@@ -73,56 +74,50 @@ require_once 'Views/peminjam_header.php';
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td class="col-instrument-name">
-                            <?= htmlspecialchars($p['nama_alat'] ?? 'Instrumen') ?>
-                            <div style="font-size: 12px; font-weight: 400; color: var(--text-muted);">
-                                <?= htmlspecialchars($p['nama_kategori'] ?? 'Kategori') ?> &bull; Kondisi: <?= htmlspecialchars($p['kondisi'] ?? 'Baik') ?>
-                            </div>
+                        <td>
+                            <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: var(--primary-teal);"><?= htmlspecialchars($p['kode_peminjaman'] ?? '-') ?></div>
+                            <strong style="color: var(--primary-navy);"><?= htmlspecialchars($p['nama_alat'] ?? 'Alat Lab') ?></strong>
+                            <div style="font-size: 11px; color: var(--text-muted);"><?= htmlspecialchars($p['kode_alat'] ?? '') ?> &bull; <?= htmlspecialchars($p['nama_kategori'] ?? '') ?></div>
+                        </td>
+                        <td>
+                            <strong style="font-size: 12px; color: var(--text-secondary);"><?= htmlspecialchars($p['jenis_peminjaman'] ?? 'Praktek Lab') ?></strong>
+                            <div style="font-size: 11px; color: var(--text-muted); max-width: 250px;"><?= htmlspecialchars($p['keperluan'] ?? '-') ?></div>
                         </td>
                         <td><strong><?= (int)($p['jumlah'] ?? 1) ?></strong> unit</td>
-                        <td><?= !empty($p['tanggal_pinjam']) ? date('d M Y', strtotime($p['tanggal_pinjam'])) : '-' ?></td>
-                        <td>
-                            <strong style="color: #0f172a;"><?= !empty($p['tanggal_kembali']) ? date('d M Y', strtotime($p['tanggal_kembali'])) : '-' ?></strong>
+                        <td style="white-space: nowrap;"><?= !empty($p['waktu_pinjam']) ? date('H:i', strtotime($p['waktu_pinjam'])) . ' WIB' : '-' ?></td>
+                        <td style="white-space: nowrap;">
+                            <strong style="color: var(--teal-dark);"><?= !empty($p['waktu_rencana_kembali']) ? date('H:i', strtotime($p['waktu_rencana_kembali'])) . ' WIB' : '-' ?></strong>
                         </td>
                         <td>
                             <?php if ($status === 'menunggu'): ?>
                                 <span class="stock-badge stock-badge-low" style="background:#fef3c7; color:#b45309; padding: 4px 10px; font-size: 12px;">
-                                    ⏳ Menunggu Persetujuan
+                                    ⏳ Menunggu Petugas
                                 </span>
                             <?php elseif ($status === 'disetujui' || $status === 'dipinjam'): ?>
                                 <span class="stock-badge stock-badge-available" style="padding: 4px 10px; font-size: 12px;">
-                                    🎸 Sedang Dipinjam
+                                    💻 Sedang Dipinjam
                                 </span>
                             <?php elseif ($status === 'dikembalikan'): ?>
-                                <span class="stock-badge" style="background:#e0e7ff; color:#3730a3; font-weight:700; padding: 4px 10px; font-size: 12px;">
+                                <span class="stock-badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; padding: 4px 10px; font-size: 12px;">
                                     ✅ Selesai Dikembalikan
                                 </span>
                             <?php elseif ($status === 'ditolak'): ?>
                                 <span class="stock-badge" style="background:#fee2e2; color:#b91c1c; font-weight:700; padding: 4px 10px; font-size: 12px;">
-                                    ❌ Pengajuan Ditolak
+                                    ❌ Ditolak
+                                </span>
+                            <?php elseif ($status === 'dibatalkan'): ?>
+                                <span class="stock-badge" style="background:#f1f5f9; color:#64748b; font-weight:700; padding: 4px 10px; font-size: 12px;">
+                                    Dibatalkan
                                 </span>
                             <?php endif; ?>
                         </td>
                         <td class="table-actions-cell">
                             <?php if ($status === 'menunggu'): ?>
-                                <a href="index.php?c=peminjam&a=batalkan_peminjaman&id=<?= $p['id_peminjaman'] ?>" 
-                                   class="btn-action-delete" 
-                                   onclick="return confirm('Apakah Anda yakin ingin membatalkan pengajuan peminjaman alat ini?')">
+                                <a href="index.php?c=peminjam&a=batalkan_peminjaman&id=<?= $p['id'] ?>" class="btn-action-delete" onclick="return confirm('Batalkan pengajuan permohonan peminjaman ini?')">
                                     Batalkan
                                 </a>
-                            <?php elseif ($status === 'dipinjam'): ?>
-                                <button type="button" 
-                                        class="btn-action-edit" 
-                                        style="color: #0f766e; background: #ccfbf1; border-color: #99f6e4; font-weight: 600;" 
-                                        onclick="openModalKembalikan(<?= (int)$p['id_peminjaman'] ?>, '<?= htmlspecialchars(addslashes($p['nama_alat'] ?? 'Instrumen')) ?>', '<?= htmlspecialchars($p['tanggal_kembali'] ?? '') ?>')">
-                                    Kembalikan
-                                </button>
-                            <?php elseif ($status === 'dikembalikan'): ?>
-                                <a href="index.php?c=peminjam&a=pengembalian" class="btn-action-edit" style="color: var(--teal-dark);">
-                                    Lihat Riwayat
-                                </a>
                             <?php else: ?>
-                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Selesai</span>
+                                <span style="font-size: 12px; color: var(--text-muted);">-</span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -132,80 +127,67 @@ require_once 'Views/peminjam_header.php';
     </table>
 </section>
 
-<!-- MODAL KEMBALIKAN ALAT -->
-<div class="modal-overlay" id="modalKembalikanAlat">
-    <div class="modal-content" style="max-width: 480px;">
+<!-- MODAL FORM AJUKAN PEMINJAMAN -->
+<div class="modal-overlay" id="modalAjukanPinjam">
+    <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Form Pengembalian Alat Musik</h3>
-            <button type="button" class="modal-close" onclick="closeModalKembalikan()">&times;</button>
-        </div>
-        <form method="POST" action="index.php?c=peminjam&a=kembalikan_alat">
-            <input type="hidden" name="id_peminjaman" id="kembalikan_id_peminjaman">
-
-            <div style="padding: 16px; background: #f0fdf4; border-radius: 8px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
-                <div style="font-size: 12px; color: #166534;">Anda akan mengembalikan:</div>
-                <div style="font-size: 15px; font-weight: 700; color: #14532d;" id="kembalikan_nama_alat">-</div>
-                <div style="font-size: 12px; color: #166534; margin-top: 4px;" id="kembalikan_info_tenggat"></div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Tanggal Pengembalian <span style="color:#ef4444;">*</span></label>
-                <input type="date" name="tanggal_pengembalian" class="form-control" value="<?= date('Y-m-d') ?>" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Catatan Kondisi / Keterangan</label>
-                <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Alat dikembalikan dalam keadaan lengkap dan baik."></textarea>
-            </div>
-
-            <div class="modal-footer" style="margin-top: 20px;">
-                <button type="button" class="btn-modal-cancel" onclick="closeModalKembalikan()">Batal</button>
-                <button type="submit" class="btn-modal-submit">Konfirmasi Pengembalian</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL AJUKAN PEMINJAMAN BARU -->
-<div class="modal-overlay" id="modalTambahPinjam">
-    <div class="modal-content" style="max-width: 520px;">
-        <div class="modal-header">
-            <h3 class="modal-title">Ajukan Peminjaman Alat Musik</h3>
-            <button type="button" class="modal-close" onclick="closeModalTambahPinjam()">&times;</button>
+            <h3 class="modal-title">Ajukan Peminjaman Alat Lab</h3>
+            <button type="button" class="modal-close" onclick="closeModal('modalAjukanPinjam')">&times;</button>
         </div>
         <form method="POST" action="index.php?c=peminjam&a=ajukan_peminjaman">
             <div class="form-group">
-                <label class="form-label">Pilih Alat Musik <span style="color:#ef4444;">*</span></label>
-                <select name="id_alat" class="form-control" id="pilih_id_alat" onchange="updateStokInfo()" required>
-                    <option value="">-- Pilih Instrumen Musik --</option>
-                    <?php foreach ($daftarAlat as $alat): ?>
-                        <?php $s = (int)$alat['jumlah_stok']; ?>
-                        <option value="<?= $alat['id_alat'] ?>" data-stok="<?= $s ?>" <?= $s <= 0 ? 'disabled' : '' ?>>
-                            <?= htmlspecialchars($alat['nama_alat']) ?> (<?= htmlspecialchars($alat['nama_kategori'] ?? 'Umum') ?>) - Stok: <?= $s ?>
-                        </option>
+                <label class="form-label">Pilih Alat Lab</label>
+                <select name="id_alat" id="select_alat" class="form-control" required onchange="updateMaxStok()">
+                    <option value="">-- Pilih Perangkat Lab Komputer --</option>
+                    <?php foreach ($daftarAlat as $a): ?>
+                        <?php if ($a['jumlah'] > 0): ?>
+                            <option value="<?= $a['id'] ?>" data-stok="<?= $a['jumlah'] ?>">
+                                [<?= htmlspecialchars($a['kode']) ?>] <?= htmlspecialchars($a['nama_alat']) ?> (Sisa stok: <?= $a['jumlah'] ?> unit)
+                            </option>
+                        <?php else: ?>
+                            <option value="<?= $a['id'] ?>" disabled>
+                                [<?= htmlspecialchars($a['kode']) ?>] <?= htmlspecialchars($a['nama_alat']) ?> (Stok Habis)
+                            </option>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </select>
-                <small id="stok_info_text" style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;"></small>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Waktu Mulai Pinjam (WIB)</label>
+                    <input type="time" name="waktu_pinjam" class="form-control" value="<?= date('H:i') ?>" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Rencana Pengembalian (WIB)</label>
+                    <input type="time" name="waktu_rencana_kembali" class="form-control" value="<?= date('H:i', strtotime('+2 hours')) ?>" required>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jumlah Unit</label>
+                    <input type="number" name="jumlah" id="input_jumlah" class="form-control" min="1" max="1" value="1" required>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Jenis Peminjaman</label>
+                    <select name="jenis_peminjaman" class="form-control" required>
+                        <option value="Praktek Lab">Praktek Jam Pelajaran Lab</option>
+                        <option value="Tugas Projek">Pengerjaan Tugas / Projek Sekolah</option>
+                        <option value="Ujian Praktik">Ujian Praktik Kompetensi (UKK)</option>
+                        <option value="Kegiatan Ekskul">Kegiatan Ekstrakurikuler Komputer</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Jumlah Unit <span style="color:#ef4444;">*</span></label>
-                <input type="number" name="jumlah" id="input_jumlah" class="form-control" value="1" min="1" required>
+                <label class="form-label">Keperluan / Keterangan</label>
+                <textarea name="keperluan" class="form-control" rows="3" placeholder="Contoh: Praktikum konfigurasi LAN dan routing di Lab RPL" required></textarea>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div class="form-group">
-                    <label class="form-label">Tanggal Mulai Pinjam <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_pinjam" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tanggal Rencana Kembali <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required>
-                </div>
-            </div>
-
-            <div class="modal-footer" style="margin-top: 20px;">
-                <button type="button" class="btn-modal-cancel" onclick="closeModalTambahPinjam()">Batal</button>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalAjukanPinjam')">Batal</button>
                 <button type="submit" class="btn-modal-submit">Kirim Pengajuan</button>
             </div>
         </form>
@@ -213,39 +195,24 @@ require_once 'Views/peminjam_header.php';
 </div>
 
 <script>
-function openModalTambahPinjam() {
-    document.getElementById('modalTambahPinjam').classList.add('active');
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
 }
-
-function closeModalTambahPinjam() {
-    document.getElementById('modalTambahPinjam').classList.remove('active');
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
 }
-
-function updateStokInfo() {
-    const sel = document.getElementById('pilih_id_alat');
-    const opt = sel.options[sel.selectedIndex];
-    const stok = opt ? parseInt(opt.getAttribute('data-stok') || 0) : 0;
-    const txt = document.getElementById('stok_info_text');
-    const jml = document.getElementById('input_jumlah');
-    if (stok > 0) {
-        txt.textContent = 'Maksimal pinjam saat ini: ' + stok + ' unit.';
-        jml.max = stok;
-    } else {
-        txt.textContent = '';
-        jml.removeAttribute('max');
+function updateMaxStok() {
+    var select = document.getElementById('select_alat');
+    var selectedOption = select.options[select.selectedIndex];
+    var stok = selectedOption.getAttribute('data-stok');
+    var inputJml = document.getElementById('input_jumlah');
+    if (stok) {
+        inputJml.max = stok;
+        if (parseInt(inputJml.value) > parseInt(stok)) {
+            inputJml.value = stok;
+        }
     }
-}
-
-function openModalKembalikan(idPeminjaman, namaAlat, tglKembali) {
-    document.getElementById('kembalikan_id_peminjaman').value = idPeminjaman;
-    document.getElementById('kembalikan_nama_alat').textContent = namaAlat;
-    document.getElementById('kembalikan_info_tenggat').textContent = 'Tenggat Waktu: ' + (tglKembali || '-');
-    document.getElementById('modalKembalikanAlat').classList.add('active');
-}
-
-function closeModalKembalikan() {
-    document.getElementById('modalKembalikanAlat').classList.remove('active');
 }
 </script>
 
-<?php require_once 'Views/peminjam_footer.php'; ?>
+<?php require_once __DIR__ . '/peminjam_footer.php'; ?>

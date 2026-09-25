@@ -137,4 +137,52 @@ class Pengembalian {
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
+
+    public function getPengembalianByPeminjamId($idPeminjam, $keyword = null) {
+        $query = "SELECT pg.*, 
+                         p.kode_peminjaman, p.waktu_pinjam, p.waktu_rencana_kembali,
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan,
+                         u.nama as nama_petugas,
+                         dp.id_alat, dp.jumlah,
+                         a.nama_alat, a.kode as kode_alat,
+                         k.nama_kategori
+                  FROM " . $this->table_name . " pg
+                  JOIN peminjaman p ON pg.id_peminjaman = p.id
+                  JOIN peminjam pm ON p.id_peminjam = pm.id
+                  LEFT JOIN user u ON pg.id_user = u.id_user
+                  LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                  LEFT JOIN alat a ON dp.id_alat = a.id
+                  LEFT JOIN kategori k ON a.id_kategori = k.id
+                  WHERE p.id_peminjam = :idPeminjam";
+
+        if (!empty($keyword)) {
+            $query .= " AND (p.kode_peminjaman LIKE :keyword 
+                        OR a.nama_alat LIKE :keyword 
+                        OR pg.kondisi_kembali LIKE :keyword)";
+        }
+
+        $query .= " ORDER BY pg.id DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idPeminjam', $idPeminjam, PDO::PARAM_INT);
+
+        if (!empty($keyword)) {
+            $searchTerm = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $searchTerm);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getTotalDendaByPeminjamId($idPeminjam) {
+        $query = "SELECT SUM(pg.denda) as total_denda 
+                  FROM " . $this->table_name . " pg 
+                  JOIN peminjaman p ON pg.id_peminjaman = p.id 
+                  WHERE p.id_peminjam = :idPeminjam";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idPeminjam', $idPeminjam, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float)($row['total_denda'] ?? 0);
+    }
 }

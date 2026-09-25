@@ -1,15 +1,15 @@
 <?php
 $activePage = 'daftar_alat';
-$pageTitle = 'Daftar Alat Musik - NARA BAND';
-require_once 'Views/peminjam_header.php';
+$pageTitle = 'Katalog Alat Lab Komputer - Ruang Siswa';
+require_once __DIR__ . '/peminjam_header.php';
 ?>
 
 <!-- HEADER ROW -->
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label">KATALOG & INSTRUMEN</span>
-        <h1 class="admin-title">Daftar Alat Musik</h1>
-        <p class="admin-subtitle">Pilih instrumen musik profesional terbaik untuk latihan studio, manggung, atau rekaman. Cek tarif harian dan ajukan pinjaman langsung.</p>
+        <span class="admin-date-label">KATALOG LABORATORIUM KOMPUTER</span>
+        <h1 class="admin-title">Katalog Alat Lab</h1>
+        <p class="admin-subtitle">Pilih perangkat jaringan, workstation PC, atau peralatan komputer untuk praktikum sekolah dan ajukan peminjaman secara langsung.</p>
     </div>
     <div style="display: flex; gap: 12px;">
         <a href="index.php?c=peminjam&a=peminjaman" class="btn-action-edit" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px; font-weight: 600; text-decoration: none; border-radius: 8px;">
@@ -37,7 +37,7 @@ require_once 'Views/peminjam_header.php';
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
         </span>
-        <input type="text" name="search" placeholder="Cari nama instrumen atau kategori..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+        <input type="text" name="search" placeholder="Cari nama alat lab atau kode..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
     </form>
 
     <!-- CATEGORY PILLS -->
@@ -47,8 +47,8 @@ require_once 'Views/peminjam_header.php';
             Semua (<?= count($daftarAlat) ?>)
         </a>
         <?php foreach ($daftarKategori as $kat): ?>
-            <?php $isActive = (isset($_GET['kategori']) && (int)$_GET['kategori'] === (int)$kat['id_kategori']); ?>
-            <a href="index.php?c=peminjam&a=daftar_alat&kategori=<?= $kat['id_kategori'] ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>" 
+            <?php $isActive = (isset($_GET['kategori']) && (int)$_GET['kategori'] === (int)$kat['id']); ?>
+            <a href="index.php?c=peminjam&a=daftar_alat&kategori=<?= $kat['id'] ?><?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>" 
                style="padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; text-decoration: none; <?= $isActive ? 'background: var(--teal-primary); color: white;' : 'background: #f1f5f9; color: #475569;' ?>">
                 <?= htmlspecialchars($kat['nama_kategori']) ?>
             </a>
@@ -63,67 +63,59 @@ require_once 'Views/peminjam_header.php';
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Tidak Ada Alat Musik Ditemukan</h3>
+        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Tidak Ada Alat Lab Ditemukan</h3>
         <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0;">Coba gunakan kata kunci pencarian lain atau pilih kategori yang berbeda.</p>
-        <a href="index.php?c=peminjam&a=daftar_alat" class="btn-action-edit" style="display: inline-block; text-decoration: none;">Reset Filter Pencarian</a>
+        <a href="index.php?c=peminjam&a=daftar_alat" class="btn-action-edit" style="display: inline-block; text-decoration: none;">Reset Filter</a>
     </div>
 <?php else: ?>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 40px;">
         <?php foreach ($daftarAlat as $alat): 
-            $stok = (int)($alat['jumlah_stok'] ?? 0);
+            $stok = (int)($alat['jumlah'] ?? 0);
             $tersedia = ($stok > 0);
-            $harga = (float)($alat['harga_sewa'] ?? 0);
         ?>
             <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px -2px rgba(15, 42, 63, 0.03);">
                 <!-- HEADER CARD / ICON -->
-                <div style="height: 120px; background: linear-gradient(135deg, rgba(20, 184, 166, 0.08), rgba(15, 118, 110, 0.03)); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #f1f5f9;">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; color: var(--teal-dark);">
-                        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M9 18V5l12-2v13"></path>
-                            <circle cx="6" cy="18" r="3"></circle>
-                            <circle cx="18" cy="16" r="3"></circle>
+                <div style="height: 110px; background: linear-gradient(135deg, rgba(20, 184, 166, 0.08), rgba(15, 118, 110, 0.03)); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #f1f5f9;">
+                    <div style="width: 52px; height: 52px; border-radius: 50%; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; color: var(--teal-dark);">
+                        <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
                         </svg>
                     </div>
                     <span style="position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; <?= $tersedia ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #b91c1c;' ?>">
                         <?= $tersedia ? 'Tersedia ' . $stok . ' Unit' : 'Stok Habis' ?>
+                    </span>
+                    <span style="position: absolute; top: 12px; left: 12px; font-family: monospace; font-size: 11px; font-weight: 700; background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px;">
+                        <?= htmlspecialchars($alat['kode'] ?? '-') ?>
                     </span>
                 </div>
 
                 <!-- BODY CARD -->
                 <div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">
                     <span style="font-size: 11px; font-weight: 700; color: var(--teal-dark); text-transform: uppercase; letter-spacing: 0.5px;">
-                        <?= htmlspecialchars($alat['nama_kategori'] ?? 'Instrumen') ?>
+                        <?= htmlspecialchars($alat['nama_kategori'] ?? 'Umum') ?>
                     </span>
-                    <h3 style="margin: 6px 0 10px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.4;">
+                    <h3 style="margin: 6px 0 8px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.4;">
                         <?= htmlspecialchars($alat['nama_alat']) ?>
                     </h3>
-
-                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0 0 14px 0; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                        <?= !empty($alat['spesifikasi']) ? htmlspecialchars($alat['spesifikasi']) : 'Instrumen musik kualitas standar studio rekaman dan panggung.' ?>
+                    <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0 0 16px 0; flex-grow: 1;">
+                        <?= htmlspecialchars($alat['deskripsi'] ?? 'Perangkat laboratorium komputer sekolah.') ?>
                     </p>
 
-                    <!-- HARGA SEWA HARIAN -->
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px;">
-                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">Harga Sewa Harian:</span>
-                        <div style="font-size: 18px; font-weight: 800; color: var(--teal-dark);">
-                            Rp <?= number_format($harga, 0, ',', '.') ?>
-                            <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">/ hari</span>
-                        </div>
+                    <div style="background: #f8fafc; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+                        <span style="color: var(--text-muted);">Kondisi:</span>
+                        <strong style="color: #0369a1;"><?= htmlspecialchars($alat['kondisi'] ?? 'Baik') ?></strong>
                     </div>
 
-                    <!-- ACTION BUTTON -->
                     <?php if ($tersedia): ?>
-                        <button type="button" 
-                                class="btn-modal-submit" 
-                                style="width: 100%; padding: 10px; font-size: 13px; font-weight: 700; text-align: center; border-radius: 8px;"
-                                onclick="bukaModalPinjam(<?= (int)$alat['id_alat'] ?>, '<?= htmlspecialchars(addslashes($alat['nama_alat'])) ?>', <?= $harga ?>, <?= $stok ?>)">
-                            Ajukan Peminjaman &rarr;
+                        <button type="button" class="btn-add-instrument" style="width: 100%; text-align: center; justify-content: center; padding: 10px;" 
+                                onclick='openPinjamModal(<?= json_encode($alat) ?>)'>
+                            Pinjam Alat Lab
                         </button>
                     <?php else: ?>
-                        <button type="button" 
-                                disabled
-                                style="width: 100%; padding: 10px; font-size: 13px; font-weight: 600; background: #e2e8f0; color: #94a3b8; border: none; border-radius: 8px; cursor: not-allowed;">
-                            Stok Tidak Tersedia
+                        <button type="button" disabled style="width: 100%; padding: 10px; background: #e2e8f0; color: #94a3b8; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;">
+                            Tidak Tersedia
                         </button>
                     <?php endif; ?>
                 </div>
@@ -132,173 +124,81 @@ require_once 'Views/peminjam_header.php';
     </div>
 <?php endif; ?>
 
-<!-- MODAL FORM PENGAJUAN PEMINJAMAN DENGAN METODE PEMBAYARAN -->
-<div class="modal-overlay" id="modalAjukanPinjam">
-    <div class="modal-content" style="max-width: 540px; max-height: 90vh; overflow-y: auto;">
+<!-- MODAL FORM PINJAM ALAT -->
+<div class="modal-overlay" id="modalPinjamAlat">
+    <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Formulir Pengajuan Peminjaman</h3>
-            <button type="button" class="modal-close" onclick="tutupModalPinjam()">&times;</button>
+            <h3 class="modal-title">Formulir Peminjaman Alat Lab</h3>
+            <button type="button" class="modal-close" onclick="closeModal('modalPinjamAlat')">&times;</button>
         </div>
+        <form method="POST" action="index.php?c=peminjam&a=ajukan_peminjaman">
+            <input type="hidden" name="id_alat" id="pinjam_id_alat">
 
-        <form method="POST" action="index.php?c=peminjam&a=ajukan_peminjaman" enctype="multipart/form-data">
-            <input type="hidden" name="id_alat" id="form_id_alat">
-            <input type="hidden" id="form_harga_per_hari" value="0">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px;">
+                <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Perangkat Dipilih:</div>
+                <strong style="font-size: 15px; color: #14532d;" id="pinjam_nama_alat">-</strong>
+                <div style="font-size: 12px; color: #166534; margin-top: 2px;" id="pinjam_info_stok">Stok: -</div>
+            </div>
 
-            <!-- INFO ALAT YANG DIPILIH -->
-            <div style="padding: 14px 16px; background: #f0fdfa; border-radius: 10px; border: 1px solid #ccfbf1; margin-bottom: 18px;">
-                <div style="font-size: 12px; color: #0f766e; font-weight: 500;">Instrumen yang Dipinjam:</div>
-                <div style="font-size: 16px; font-weight: 800; color: #115e59; margin-top: 2px;" id="form_nama_alat">-</div>
-                <div style="font-size: 13px; color: #0f766e; margin-top: 4px;">
-                    Tarif Sewa: <strong id="form_tarif_text">Rp 0 / hari</strong> &bull; Sisa Stok: <strong id="form_stok_text">0 unit</strong>
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Waktu Mulai Pinjam (WIB)</label>
+                    <input type="time" name="waktu_pinjam" class="form-control" value="<?= date('H:i') ?>" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Rencana Pengembalian (WIB)</label>
+                    <input type="time" name="waktu_rencana_kembali" class="form-control" value="<?= date('H:i', strtotime('+2 hours')) ?>" required>
                 </div>
             </div>
 
-            <!-- JUMLAH UNIT & DURASI -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-                <div class="form-group">
-                    <label class="form-label">Jumlah Unit <span style="color:#ef4444;">*</span></label>
-                    <input type="number" name="jumlah" id="form_jumlah" class="form-control" value="1" min="1" required onchange="hitungTotalSewa()" oninput="hitungTotalSewa()">
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jumlah Unit</label>
+                    <input type="number" name="jumlah" id="pinjam_jumlah" class="form-control" min="1" max="1" value="1" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tanggal Mulai Pinjam <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_pinjam" id="form_tgl_pinjam" class="form-control" value="<?= date('Y-m-d') ?>" required onchange="hitungTotalSewa()">
+                <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Jenis Peminjaman</label>
+                    <select name="jenis_peminjaman" class="form-control" required>
+                        <option value="Praktek Lab">Praktek Jam Pelajaran Lab</option>
+                        <option value="Tugas Projek">Pengerjaan Tugas / Projek Sekolah</option>
+                        <option value="Ujian Praktik">Ujian Praktik Kompetensi (UKK)</option>
+                        <option value="Kegiatan Ekskul">Kegiatan Ekstrakurikuler Komputer</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Tanggal Rencana Kembali <span style="color:#ef4444;">*</span></label>
-                <input type="date" name="tanggal_kembali" id="form_tgl_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required onchange="hitungTotalSewa()">
+                <label class="form-label">Keperluan / Keterangan</label>
+                <textarea name="keperluan" class="form-control" rows="3" placeholder="Contoh: Praktikum konfigurasi routing jaringan MikroTik di Lab RPL 2" required></textarea>
             </div>
 
-            <!-- TOTAL BIAYA SEWA (KALKULASI OTOMATIS) -->
-            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 14px 16px; margin: 16px 0;">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #475569; margin-bottom: 4px;">
-                    <span>Durasi Peminjaman:</span>
-                    <strong id="kalkulasi_durasi">3 Hari</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 6px;">
-                    <span style="font-size: 14px; font-weight: 700; color: #0f172a;">Total Biaya Sewa:</span>
-                    <span style="font-size: 20px; font-weight: 800; color: var(--teal-dark);" id="kalkulasi_total">Rp 0</span>
-                </div>
-            </div>
-
-            <!-- PILIHAN METODE PEMBAYARAN -->
-            <div class="form-group">
-                <label class="form-label">Pilih Metode Pembayaran <span style="color:#ef4444;">*</span></label>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px;">
-                    <!-- OFFLINE: DI TEMPAT -->
-                    <label style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s;" id="label_metode_offline">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                            <input type="radio" name="metode_pembayaran" value="di_tempat" checked onchange="toggleMetodePembayaran(this.value)">
-                            <strong style="font-size: 13px; color: #0f172a;">Offline (Di Tempat)</strong>
-                        </div>
-                        <span style="font-size: 11px; color: var(--text-muted); margin-left: 24px;">Bayar tunai di studio saat mengambil alat</span>
-                    </label>
-
-                    <!-- ONLINE: WEBSITE -->
-                    <label style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s;" id="label_metode_online">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                            <input type="radio" name="metode_pembayaran" value="website" onchange="toggleMetodePembayaran(this.value)">
-                            <strong style="font-size: 13px; color: #0f172a;">Online (Website)</strong>
-                        </div>
-                        <span style="font-size: 11px; color: var(--text-muted); margin-left: 24px;">Transfer Bank BCA atau QRIS</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- INSTRUKSI TRANSFER & UPLOAD BUKTI (JIKA ONLINE) -->
-            <div id="section_pembayaran_online" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-bottom: 18px;">
-                <div style="font-size: 12px; font-weight: 700; color: #92400e; margin-bottom: 6px;">Instruksi Pembayaran Transfer:</div>
-                <div style="font-size: 13px; color: #78350f; line-height: 1.5; margin-bottom: 12px;">
-                    Silakan transfer total biaya sewa ke rekening resmi studio:
-                    <div style="background: white; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 12px; margin-top: 6px;">
-                        <div>Bank: <strong>BCA (Bank Central Asia)</strong></div>
-                        <div>No. Rekening: <strong style="font-size: 15px; color: #0f172a;">8720-1928-31</strong></div>
-                        <div>Atas Nama: <strong>NARA BAND STUDIO</strong></div>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label" style="font-size: 12px; color: #78350f;">Upload Bukti Transfer / Pembayaran (Foto/PDF):</label>
-                    <input type="file" name="bukti_pembayaran" class="form-control" accept="image/*,.pdf" style="background: white;">
-                    <small style="color: #92400e; font-size: 11px; display: block; margin-top: 4px;">
-                        *Jika belum sempat mentransfer sekarang, Anda tetap dapat mengupload bukti pembayaran nanti pada menu Peminjaman Saya.
-                    </small>
-                </div>
-            </div>
-
-            <!-- MODAL FOOTER -->
-            <div class="modal-footer" style="margin-top: 24px;">
-                <button type="button" class="btn-modal-cancel" onclick="tutupModalPinjam()">Batal</button>
-                <button type="submit" class="btn-modal-submit">Kirim Pengajuan Peminjaman</button>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('modalPinjamAlat')">Batal</button>
+                <button type="submit" class="btn-modal-submit">Kirim Pengajuan</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function bukaModalPinjam(idAlat, namaAlat, hargaSewa, stok) {
-    document.getElementById('form_id_alat').value = idAlat;
-    document.getElementById('form_harga_per_hari').value = hargaSewa;
-    document.getElementById('form_nama_alat').textContent = namaAlat;
-    document.getElementById('form_tarif_text').textContent = 'Rp ' + Number(hargaSewa).toLocaleString('id-ID') + ' / hari';
-    document.getElementById('form_stok_text').textContent = stok + ' unit';
+function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+function openPinjamModal(alat) {
+    document.getElementById('pinjam_id_alat').value = alat.id;
+    document.getElementById('pinjam_nama_alat').textContent = alat.nama_alat + ' (' + (alat.kode || '') + ')';
+    document.getElementById('pinjam_info_stok').textContent = 'Stok tersedia di laboratorium: ' + alat.jumlah + ' unit';
     
-    const inputJumlah = document.getElementById('form_jumlah');
-    inputJumlah.max = stok;
-    inputJumlah.value = 1;
+    var jumlahInput = document.getElementById('pinjam_jumlah');
+    jumlahInput.max = alat.jumlah;
+    jumlahInput.value = 1;
 
-    hitungTotalSewa();
-    document.getElementById('modalAjukanPinjam').classList.add('active');
+    openModal('modalPinjamAlat');
 }
-
-function tutupModalPinjam() {
-    document.getElementById('modalAjukanPinjam').classList.remove('active');
-}
-
-function hitungTotalSewa() {
-    const harga = parseFloat(document.getElementById('form_harga_per_hari').value) || 0;
-    const jumlah = parseInt(document.getElementById('form_jumlah').value) || 1;
-    const tglPinjam = document.getElementById('form_tgl_pinjam').value;
-    const tglKembali = document.getElementById('form_tgl_kembali').value;
-
-    let hari = 1;
-    if (tglPinjam && tglKembali) {
-        const d1 = new Date(tglPinjam);
-        const d2 = new Date(tglKembali);
-        const diffTime = d2.getTime() - d1.getTime();
-        hari = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (hari <= 0) hari = 1;
-    }
-
-    const total = harga * jumlah * hari;
-    document.getElementById('kalkulasi_durasi').textContent = hari + ' Hari (' + jumlah + ' unit)';
-    document.getElementById('kalkulasi_total').textContent = 'Rp ' + total.toLocaleString('id-ID');
-}
-
-function toggleMetodePembayaran(metode) {
-    const sectionOnline = document.getElementById('section_pembayaran_online');
-    const labelOffline = document.getElementById('label_metode_offline');
-    const labelOnline = document.getElementById('label_metode_online');
-
-    if (metode === 'website') {
-        sectionOnline.style.display = 'block';
-        labelOnline.style.borderColor = 'var(--teal-primary)';
-        labelOnline.style.background = '#f0fdfa';
-        labelOffline.style.borderColor = '#e2e8f0';
-        labelOffline.style.background = 'transparent';
-    } else {
-        sectionOnline.style.display = 'none';
-        labelOffline.style.borderColor = 'var(--teal-primary)';
-        labelOffline.style.background = '#f0fdfa';
-        labelOnline.style.borderColor = '#e2e8f0';
-        labelOnline.style.background = 'transparent';
-    }
-}
-
-// Inisialisasi highlight radio default
-toggleMetodePembayaran('di_tempat');
 </script>
 
-<?php require_once 'Views/peminjam_footer.php'; ?>
+<?php require_once __DIR__ . '/peminjam_footer.php'; ?>

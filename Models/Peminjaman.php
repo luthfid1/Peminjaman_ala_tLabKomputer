@@ -274,4 +274,76 @@ class Peminjaman {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getPeminjamanByPeminjamId($idPeminjam, $keyword = null, $statusFilter = null) {
+        $query = "SELECT p.*, 
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan,
+                         u.nama as nama_petugas,
+                         dp.id_alat, dp.jumlah,
+                         a.nama_alat, a.kode as kode_alat,
+                         k.nama_kategori
+                  FROM " . $this->table_name . " p
+                  JOIN peminjam pm ON p.id_peminjam = pm.id
+                  LEFT JOIN user u ON p.id_user = u.id_user
+                  LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                  LEFT JOIN alat a ON dp.id_alat = a.id
+                  LEFT JOIN kategori k ON a.id_kategori = k.id
+                  WHERE p.id_peminjam = :idPeminjam";
+
+        if (!empty($statusFilter)) {
+            $query .= " AND p.status = :statusFilter";
+        }
+
+        if (!empty($keyword)) {
+            $query .= " AND (p.kode_peminjaman LIKE :keyword 
+                        OR a.nama_alat LIKE :keyword 
+                        OR p.keperluan LIKE :keyword)";
+        }
+
+        $query .= " ORDER BY p.id DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idPeminjam', $idPeminjam, PDO::PARAM_INT);
+
+        if (!empty($statusFilter)) {
+            $stmt->bindParam(':statusFilter', $statusFilter);
+        }
+
+        if (!empty($keyword)) {
+            $searchTerm = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $searchTerm);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countPeminjamPeminjamanByStatus($idPeminjam, $status = null) {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE id_peminjam = :idPeminjam";
+        if (!empty($status)) {
+            if (is_array($status)) {
+                $in = "'" . implode("','", array_map('addslashes', $status)) . "'";
+                $query .= " AND status IN ($in)";
+            } else {
+                $query .= " AND status = :status";
+            }
+        }
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':idPeminjam', $idPeminjam, PDO::PARAM_INT);
+        if (!empty($status) && !is_array($status)) {
+            $stmt->bindParam(':status', $status);
+        }
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
+    }
+
+    public function batalkanPeminjamanByPeminjam($id, $idPeminjam) {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET status = 'dibatalkan' 
+                  WHERE id = :id AND id_peminjam = :idPeminjam AND status = 'menunggu'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':idPeminjam', $idPeminjam, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }

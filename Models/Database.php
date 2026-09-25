@@ -82,6 +82,13 @@ class Database {
                         $this->conn->exec("ALTER TABLE `pengembalian` CHANGE `tanggal_kembali` `waktu_kembali` TIME NOT NULL");
                     }
                 } catch (Exception $e) {}
+
+                try {
+                    $colsU = $this->conn->query("SHOW COLUMNS FROM `peminjam` LIKE 'id_user'");
+                    if ($colsU->rowCount() === 0) {
+                        $this->conn->exec("ALTER TABLE `peminjam` ADD COLUMN `id_user` INT(11) NULL AFTER `id`");
+                    }
+                } catch (Exception $e) {}
             }
         } catch (Exception $e) {
             // Lanjut jika sudah terinisialisasi
