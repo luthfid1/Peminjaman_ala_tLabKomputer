@@ -12,24 +12,19 @@ if (session_status() === PHP_SESSION_NONE) {
 $controller = isset($_GET['c']) ? strtolower(trim($_GET['c'])) : '';
 $action     = isset($_GET['a']) ? strtolower(trim($_GET['a'])) : '';
 
-// Routing default jika parameter kosong
+// Routing default jika parameter kosong: tampilkan Landing Page terlebih dahulu
 if (empty($controller)) {
-    if (isset($_SESSION['user'])) {
-        $userRole = strtolower(trim($_SESSION['user']['role'] ?? ''));
-        if (in_array($userRole, ['pengelola', 'admin'])) {
-            $controller = 'admin';
-            $action = 'dashboard';
-        } else {
-            $controller = 'auth';
-            $action = 'login';
-        }
-    } else {
-        $controller = 'auth';
-        $action = 'login';
-    }
+    $controller = 'home';
+    $action     = 'index';
 }
 
 switch ($controller) {
+    case 'home':
+        require_once __DIR__ . '/controllers/homecontroller.php';
+        $home = new HomeController();
+        $home->index();
+        break;
+
     case 'admin':
         require_once __DIR__ . '/controllers/admincontroller.php';
         $admin = new AdminController();
@@ -128,6 +123,9 @@ switch ($controller) {
             case 'login':
                 $auth->login();
                 break;
+            case 'register':
+                $auth->register();
+                break;
             case 'logout':
                 $auth->logout();
                 break;
@@ -138,6 +136,7 @@ switch ($controller) {
         break;
 
     default:
-        header('Location: index.php?c=auth&a=login');
+        // Jika route tidak dikenal, alihkan ke landing page
+        header('Location: index.php?c=home&a=index');
         exit;
 }

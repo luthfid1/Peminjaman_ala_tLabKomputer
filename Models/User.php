@@ -77,7 +77,10 @@ class User {
         $stmt->bindParam(':username', $username);
         $stmt->bindParam(':password', $hashed);
         $stmt->bindParam(':role', $role);
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            return $this->conn->lastInsertId();
+        }
+        return false;
     }
 
     public function updateUser($id_user, $nama, $username, $role, $password = null) {
