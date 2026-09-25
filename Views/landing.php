@@ -39,8 +39,8 @@
                     ?>
                     <a href="<?= $dashboardUrl ?>" class="btn-nav-register" style="padding: 8px 16px;">Ruang Kerja &rarr;</a>
                 <?php else: ?>
-                    <a href="index.php?c=auth&a=login" class="nav-link-login">Masuk</a>
-                    <a href="index.php?c=auth&a=login" class="btn-nav-register">Login Sistem</a>
+                    <a href="index.php?c=auth&a=login" class="nav-link-login">Login</a>
+                    <a href="index.php?c=auth&a=register" class="btn-nav-register">Daftar</a>
                 <?php endif; ?>
             </div>
         </header>

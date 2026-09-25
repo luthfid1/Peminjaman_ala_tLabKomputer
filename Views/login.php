@@ -62,13 +62,8 @@
             <button type="submit" class="btn-auth-submit">Masuk ke Sistem</button>
         </form>
 
-        <div class="auth-footer" style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--text-muted);">
-            Siswa belum punya akun? <a href="index.php?c=auth&a=register" style="color: var(--teal-dark); font-weight: 700; text-decoration: none;">Daftar di sini</a>
-        </div>
-
-        <div style="margin-top: 18px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; color: #64748b;">
-            <strong style="color: #0f2a3f; display: block; margin-bottom: 4px;">Akun Demo Pengelola Lab:</strong>
-            Username: <code>pengelola</code> &bull; Password: <code>password123</code>
+        <div class="auth-footer" style="margin-top: 18px; text-align: center; font-size: 13px; color: var(--text-muted);">
+            Belum punya akun? <a href="index.php?c=auth&a=register" style="color: var(--teal-dark); font-weight: 700; text-decoration: none;">Daftar sekarang</a>
         </div>
 
         <a href="index.php" class="back-home-link" style="display: block; margin-top: 14px; text-align: center; text-decoration: none; color: var(--text-muted); font-size: 13px;">&larr; Kembali ke Beranda</a>
