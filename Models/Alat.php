@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Models/Database.php';
+require_once __DIR__ . '/Database.php';
 
 class Alat {
     private $conn;
@@ -9,33 +9,18 @@ class Alat {
     public function __construct() {
         $database = new Database();
         $this->conn = $database->getConnection();
-        $this->ensureRealisticPrices();
     }
 
-    // Naikkan harga sewa yang terlalu kecil agar sesuai standar rental studio profesional
-    public function ensureRealisticPrices() {
-        try {
-            $this->conn->exec("UPDATE " . $this->table_name . " SET harga_sewa = CASE 
-                WHEN harga_sewa < 20000 THEN 125000
-                WHEN harga_sewa < 50000 THEN 175000
-                WHEN harga_sewa < 100000 THEN 225000
-                ELSE harga_sewa
-            END WHERE harga_sewa < 100000 AND harga_sewa > 0");
-        } catch (Exception $e) {}
-    }
-
-    // Mengambil semua data alat beserta nama kategorinya
     public function getAllAlat($keyword = null) {
-        $query = "SELECT a.*, k.nama_kategori, DATE_FORMAT(a.created_at, '%d %b %Y') as tgl_cek 
+        $query = "SELECT a.*, k.nama_kategori 
                   FROM " . $this->table_name . " a 
-                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori";
+                  LEFT JOIN kategori k ON a.id_kategori = k.id";
 
         if (!empty($keyword)) {
-            $query .= " WHERE a.nama_alat LIKE :keyword OR k.nama_kategori LIKE :keyword";
+            $query .= " WHERE a.nama_alat LIKE :keyword OR a.kode LIKE :keyword OR k.nama_kategori LIKE :keyword OR a.kondisi LIKE :keyword";
         }
 
-        $query .= " ORDER BY a.id_alat DESC";
-
+        $query .= " ORDER BY a.id DESC";
         $stmt = $this->conn->prepare($query);
 
         if (!empty($keyword)) {
@@ -47,12 +32,11 @@ class Alat {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Mengambil satu data alat berdasarkan ID
     public function getAlatById($id) {
         $query = "SELECT a.*, k.nama_kategori 
                   FROM " . $this->table_name . " a 
-                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori 
-                  WHERE a.id_alat = :id 
+                  LEFT JOIN kategori k ON a.id_kategori = k.id 
+                  WHERE a.id = :id 
                   LIMIT 1";
 
         $stmt = $this->conn->prepare($query);
@@ -62,60 +46,63 @@ class Alat {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Tambah alat baru
-    public function createAlat($kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok) {
-        $query = "INSERT INTO " . $this->table_name . " (id_kategori, nama_alat, spesifikasi, harga_sewa, jumlah_stok) 
-                  VALUES (:kategori_id, :nama_alat, :spesifikasi, :harga_sewa, :jumlah_stok)";
+    public function createAlat($kode, $id_kategori, $nama_alat, $jumlah, $kondisi, $deskripsi) {
+        $query = "INSERT INTO " . $this->table_name . " (kode, id_kategori, nama_alat, jumlah, kondisi, deskripsi) 
+                  VALUES (:kode, :id_kategori, :nama_alat, :jumlah, :kondisi, :deskripsi)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':kategori_id', $kategori_id, PDO::PARAM_INT);
+        $stmt->bindParam(':kode', $kode);
+        $stmt->bindParam(':id_kategori', $id_kategori, PDO::PARAM_INT);
         $stmt->bindParam(':nama_alat', $nama_alat);
-        $stmt->bindParam(':spesifikasi', $spesifikasi);
-        $stmt->bindParam(':harga_sewa', $harga_sewa);
-        $stmt->bindParam(':jumlah_stok', $jumlah_stok, PDO::PARAM_INT);
+        $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
+        $stmt->bindParam(':kondisi', $kondisi);
+        $stmt->bindParam(':deskripsi', $deskripsi);
         return $stmt->execute();
     }
 
-    // Update data alat
-    public function updateAlat($id, $kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok) {
+    public function updateAlat($id, $kode, $id_kategori, $nama_alat, $jumlah, $kondisi, $deskripsi) {
         $query = "UPDATE " . $this->table_name . " 
-                  SET id_kategori = :kategori_id, nama_alat = :nama_alat, spesifikasi = :spesifikasi, 
-                      harga_sewa = :harga_sewa, jumlah_stok = :jumlah_stok 
-                  WHERE id_alat = :id";
+                  SET kode = :kode, id_kategori = :id_kategori, nama_alat = :nama_alat, 
+                      jumlah = :jumlah, kondisi = :kondisi, deskripsi = :deskripsi 
+                  WHERE id = :id";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':kategori_id', $kategori_id, PDO::PARAM_INT);
+        $stmt->bindParam(':kode', $kode);
+        $stmt->bindParam(':id_kategori', $id_kategori, PDO::PARAM_INT);
         $stmt->bindParam(':nama_alat', $nama_alat);
-        $stmt->bindParam(':spesifikasi', $spesifikasi);
-        $stmt->bindParam(':harga_sewa', $harga_sewa);
-        $stmt->bindParam(':jumlah_stok', $jumlah_stok, PDO::PARAM_INT);
+        $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
+        $stmt->bindParam(':kondisi', $kondisi);
+        $stmt->bindParam(':deskripsi', $deskripsi);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
-    // Hapus data alat
     public function deleteAlat($id) {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id_alat = :id";
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
-    // Mengambil statistik dashboard untuk Admin
     public function getDashboardStats() {
         $stats = [
-            'total_alat'          => 0,
-            'total_kategori'      => 0,
-            'sedang_dipinjam'     => 0,
-            'menunggu_persetujuan'=> 0
+            'total_alat' => 0,
+            'total_kategori' => 0,
+            'sedang_dipinjam' => 0,
+            'menunggu_persetujuan' => 0
         ];
 
         try {
-            $stats['total_alat'] = (int) $this->conn->query("SELECT COUNT(*) FROM alat")->fetchColumn();
-            $stats['total_kategori'] = (int) $this->conn->query("SELECT COUNT(*) FROM kategori")->fetchColumn();
-            $stats['sedang_dipinjam'] = (int) $this->conn->query("SELECT COUNT(*) FROM peminjaman WHERE status = 'dipinjam'")->fetchColumn();
-            $stats['menunggu_persetujuan'] = (int) $this->conn->query("SELECT COUNT(*) FROM peminjaman WHERE status = 'menunggu'")->fetchColumn();
-        } catch (Exception $e) {
-            // Abaikan jika tabel belum siap
-        }
+            $q1 = $this->conn->query("SELECT COUNT(*) as total FROM " . $this->table_name);
+            $stats['total_alat'] = (int)($q1->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+            $q2 = $this->conn->query("SELECT COUNT(*) as total FROM kategori");
+            $stats['total_kategori'] = (int)($q2->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+            $q3 = $this->conn->query("SELECT COUNT(*) as total FROM peminjaman WHERE status = 'disetujui' OR status = 'dipinjam'");
+            $stats['sedang_dipinjam'] = (int)($q3->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+            $q4 = $this->conn->query("SELECT COUNT(*) as total FROM peminjaman WHERE status = 'menunggu'");
+            $stats['menunggu_persetujuan'] = (int)($q4->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+        } catch (Exception $e) {}
 
         return $stats;
     }

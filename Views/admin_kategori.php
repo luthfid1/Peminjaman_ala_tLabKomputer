@@ -1,14 +1,14 @@
 <?php
 $activePage = 'kategori';
-$pageTitle = 'Kelola Kategori Alat - SEWANADA';
-require_once 'Views/admin_header.php';
+$pageTitle = 'Kelola Kategori Alat - Pengelola Lab';
+require_once __DIR__ . '/admin_header.php';
 ?>
 
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label">KLASIFIKASI</span>
-        <h1 class="admin-title">Kelola Kategori</h1>
-        <p class="admin-subtitle">Atur pengelompokan kategori alat musik seperti Gitar, Drum, Keyboard, dll.</p>
+        <span class="admin-date-label">KLASIFIKASI LABORATORIUM</span>
+        <h1 class="admin-title">Kelola Kategori Alat</h1>
+        <p class="admin-subtitle">Atur pengelompokan jenis alat lab seperti Networking, Komputer, Tools & Kabel, dll.</p>
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahKategori')">
         + Tambah Kategori
@@ -32,8 +32,8 @@ require_once 'Views/admin_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Daftar Kategori</h3>
-            <p class="inventory-sub">Total <?= count($daftarKategori) ?> kategori terdaftar.</p>
+            <h3 class="inventory-title">Daftar Kategori Alat</h3>
+            <p class="inventory-sub">Total <?= count($daftarKategori) ?> kategori terdaftar di sistem.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="admin">
@@ -53,7 +53,7 @@ require_once 'Views/admin_header.php';
             <tr>
                 <th>No</th>
                 <th>Nama Kategori</th>
-                <th>Tanggal Dibuat</th>
+                <th>Jumlah Alat Terkait</th>
                 <th style="text-align: right;">Aksi</th>
             </tr>
         </thead>
@@ -69,12 +69,12 @@ require_once 'Views/admin_header.php';
                     <tr>
                         <td><?= $no++ ?></td>
                         <td class="col-instrument-name"><?= htmlspecialchars($kat['nama_kategori']) ?></td>
-                        <td><?= htmlspecialchars($kat['created_at'] ?? '-') ?></td>
+                        <td><span style="font-weight: 700; color: var(--primary-navy);"><?= (int)($kat['total_alat'] ?? 0) ?></span> alat</td>
                         <td class="table-actions-cell">
                             <button type="button" class="btn-action-edit" onclick='editKategori(<?= json_encode($kat) ?>)'>
                                 Ubah
                             </button>
-                            <a href="index.php?c=admin&a=hapus_kategori&id=<?= $kat['id_kategori'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus kategori ini?')">
+                            <a href="index.php?c=admin&a=hapus_kategori&id=<?= $kat['id'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus kategori ini?')">
                                 Hapus
                             </a>
                         </td>
@@ -95,7 +95,7 @@ require_once 'Views/admin_header.php';
         <form method="POST" action="index.php?c=admin&a=tambah_kategori">
             <div class="form-group">
                 <label class="form-label">Nama Kategori</label>
-                <input type="text" name="nama_kategori" class="form-control" placeholder="Contoh: Gitar & Bass" required>
+                <input type="text" name="nama_kategori" class="form-control" placeholder="Contoh: Perangkat Jaringan (Networking)" required>
             </div>
 
             <div class="modal-footer">
@@ -123,7 +123,7 @@ require_once 'Views/admin_header.php';
 
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('modalUbahKategori')">Batal</button>
-                <button type="submit" class="btn-modal-submit">Simpan Perubahan</button>
+                <button type="submit" class="btn-modal-submit">Perbarui Kategori</button>
             </div>
         </form>
     </div>
@@ -131,16 +131,16 @@ require_once 'Views/admin_header.php';
 
 <script>
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    document.getElementById(id).style.display = 'flex';
 }
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    document.getElementById(id).style.display = 'none';
 }
 function editKategori(data) {
-    document.getElementById('edit_kat_id').value = data.id_kategori;
+    document.getElementById('edit_kat_id').value = data.id;
     document.getElementById('edit_kat_nama').value = data.nama_kategori;
     openModal('modalUbahKategori');
 }
 </script>
 
-<?php require_once 'Views/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/admin_footer.php'; ?>

@@ -1,10 +1,11 @@
 <?php
 
-require_once 'Models/Alat.php';
-require_once 'Models/Kategori.php';
-require_once 'Models/User.php';
-require_once 'Models/Peminjaman.php';
-require_once 'Models/Pengembalian.php';
+require_once __DIR__ . '/../models/alat.php';
+require_once __DIR__ . '/../models/kategori.php';
+require_once __DIR__ . '/../models/user.php';
+require_once __DIR__ . '/../models/peminjaman.php';
+require_once __DIR__ . '/../models/pengembalian.php';
+require_once __DIR__ . '/../models/peminjam.php';
 
 class AdminController {
     private $alatModel;
@@ -12,10 +13,16 @@ class AdminController {
     private $userModel;
     private $peminjamanModel;
     private $pengembalianModel;
+    private $peminjamModel;
 
     public function __construct() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $role = strtolower(trim($_SESSION['user']['role'] ?? ''));
-        if (!isset($_SESSION['user']) || $role !== 'admin') {
+        // Admin (pengelola lab) memiliki akses penuh
+        if (!isset($_SESSION['user']) || !in_array($role, ['pengelola', 'admin'])) {
             header('Location: index.php?c=auth&a=login');
             exit;
         }
@@ -25,6 +32,11 @@ class AdminController {
         $this->userModel = new User();
         $this->peminjamanModel = new Peminjaman();
         $this->pengembalianModel = new Pengembalian();
+        $this->peminjamModel = new Peminjam();
+    }
+
+    private function getUserId() {
+        return $_SESSION['user']['id_user'] ?? $_SESSION['user']['id_users'] ?? 1;
     }
 
     // ==========================================
@@ -36,39 +48,17 @@ class AdminController {
         $stats = $this->alatModel->getDashboardStats();
         $totalPengguna = $this->userModel->countUsers();
 
-        // Fallback nilai visual sesuai mockup jika database belum terisi
-        if ($stats['total_alat'] === 0) {
-            $stats['total_alat'] = 48;
-            $stats['total_kategori'] = 12;
-            $stats['sedang_dipinjam'] = 17;
-            $stats['menunggu_persetujuan'] = 6;
-            $totalPengguna = 126;
-        }
-
-        $inventaris = [];
-        try {
-            $inventaris = $this->alatModel->getAllAlat($keyword);
-        } catch (Exception $e) {
-            $inventaris = [];
-        }
-
-        if (empty($inventaris) && empty($keyword)) {
-            $inventaris = [
-                ['id' => 1, 'nama_alat' => 'Gitar Yamaha C40', 'nama_kategori' => 'Gitar & Bass', 'tgl_cek' => '24 Jan 2026', 'jumlah_stok' => 5],
-                ['id' => 2, 'nama_alat' => 'Drum Mapex', 'nama_kategori' => 'Drum', 'tgl_cek' => '22 Jan 2026', 'jumlah_stok' => 0],
-                ['id' => 3, 'nama_alat' => 'Mic Shure SM58', 'nama_kategori' => 'Audio', 'tgl_cek' => '21 Jan 2026', 'jumlah_stok' => 3]
-            ];
-        }
+        $inventaris = $this->alatModel->getAllAlat($keyword);
 
         $hariArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $bulanArr = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         $tglStr = strtoupper($hariArr[date('w')] . ', ' . date('j') . ' ' . $bulanArr[(int)date('n')] . ' ' . date('Y'));
 
-        require_once 'Views/admin_dashboard.php';
+        require_once __DIR__ . '/../views/admin_dashboard.php';
     }
 
     // ==========================================
-    // CRUD DATA ALAT
+    // CRUD DATA ALAT LAB
     // ==========================================
     public function alat() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -76,30 +66,35 @@ class AdminController {
         $error = '';
 
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'added') $message = 'Data alat berhasil ditambahkan.';
-            if ($_GET['status'] === 'updated') $message = 'Data alat berhasil diperbarui.';
-            if ($_GET['status'] === 'deleted') $message = 'Data alat berhasil dihapus.';
-            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan pada data alat.';
+            if ($_GET['status'] === 'added') $message = 'Data alat laboratorium berhasil ditambahkan.';
+            if ($_GET['status'] === 'updated') $message = 'Data alat laboratorium berhasil diperbarui.';
+            if ($_GET['status'] === 'deleted') $message = 'Data alat laboratorium berhasil dihapus.';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses data alat.';
         }
 
         $daftarAlat = $this->alatModel->getAllAlat($keyword);
         $daftarKategori = $this->kategoriModel->getAllKategori();
 
-        require_once 'Views/admin_alat.php';
+        require_once __DIR__ . '/../views/admin_alat.php';
     }
 
     public function tambah_alat() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $kode        = trim($_POST['kode'] ?? '');
             $nama_alat   = trim($_POST['nama_alat'] ?? '');
-            $kategori_id = (int)($_POST['kategori_id'] ?? 0);
-            $harga_sewa  = (float)($_POST['harga_sewa'] ?? 0);
-            $jumlah_stok = (int)($_POST['jumlah_stok'] ?? 0);
-            $spesifikasi = trim($_POST['spesifikasi'] ?? '');
+            $id_kategori = (int)($_POST['id_kategori'] ?? 0);
+            $jumlah      = (int)($_POST['jumlah'] ?? 0);
+            $kondisi     = trim($_POST['kondisi'] ?? 'Baik');
+            $deskripsi   = trim($_POST['deskripsi'] ?? '');
 
-            if (!empty($nama_alat) && $kategori_id > 0) {
+            if (empty($kode)) {
+                $kode = 'ALT-' . strtoupper(substr(uniqid(), -5));
+            }
+
+            if (!empty($nama_alat) && $id_kategori > 0) {
                 try {
-                    $this->alatModel->createAlat($kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menambahkan alat musik: ' . $nama_alat);
+                    $this->alatModel->createAlat($kode, $id_kategori, $nama_alat, $jumlah, $kondisi, $deskripsi);
+                    $this->userModel->recordLog($this->getUserId(), 'Menambahkan Alat Lab', "Alat: {$nama_alat} (Kode: {$kode}, Jumlah: {$jumlah})");
                     header('Location: index.php?c=admin&a=alat&status=added');
                     exit;
                 } catch (Exception $e) {
@@ -115,16 +110,17 @@ class AdminController {
     public function ubah_alat() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id          = (int)($_POST['id'] ?? 0);
+            $kode        = trim($_POST['kode'] ?? '');
             $nama_alat   = trim($_POST['nama_alat'] ?? '');
-            $kategori_id = (int)($_POST['kategori_id'] ?? 0);
-            $harga_sewa  = (float)($_POST['harga_sewa'] ?? 0);
-            $jumlah_stok = (int)($_POST['jumlah_stok'] ?? 0);
-            $spesifikasi = trim($_POST['spesifikasi'] ?? '');
+            $id_kategori = (int)($_POST['id_kategori'] ?? 0);
+            $jumlah      = (int)($_POST['jumlah'] ?? 0);
+            $kondisi     = trim($_POST['kondisi'] ?? 'Baik');
+            $deskripsi   = trim($_POST['deskripsi'] ?? '');
 
-            if ($id > 0 && !empty($nama_alat) && $kategori_id > 0) {
+            if ($id > 0 && !empty($nama_alat) && $id_kategori > 0) {
                 try {
-                    $this->alatModel->updateAlat($id, $kategori_id, $nama_alat, $spesifikasi, $harga_sewa, $jumlah_stok);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mengubah data alat musik: ' . $nama_alat);
+                    $this->alatModel->updateAlat($id, $kode, $id_kategori, $nama_alat, $jumlah, $kondisi, $deskripsi);
+                    $this->userModel->recordLog($this->getUserId(), 'Mengubah Data Alat Lab', "ID: {$id}, Nama: {$nama_alat}");
                     header('Location: index.php?c=admin&a=alat&status=updated');
                     exit;
                 } catch (Exception $e) {
@@ -142,8 +138,9 @@ class AdminController {
         if ($id > 0) {
             try {
                 $alat = $this->alatModel->getAlatById($id);
+                $nama = $alat['nama_alat'] ?? "ID #{$id}";
                 $this->alatModel->deleteAlat($id);
-                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus alat: ' . ($alat['nama_alat'] ?? "ID $id"));
+                $this->userModel->recordLog($this->getUserId(), 'Menghapus Alat Lab', "Menghapus alat: {$nama}");
                 header('Location: index.php?c=admin&a=alat&status=deleted');
                 exit;
             } catch (Exception $e) {
@@ -164,14 +161,14 @@ class AdminController {
         $error = '';
 
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'added') $message = 'Kategori berhasil ditambahkan.';
-            if ($_GET['status'] === 'updated') $message = 'Kategori berhasil diperbarui.';
+            if ($_GET['status'] === 'added') $message = 'Kategori baru berhasil ditambahkan.';
+            if ($_GET['status'] === 'updated') $message = 'Data kategori berhasil diperbarui.';
             if ($_GET['status'] === 'deleted') $message = 'Kategori berhasil dihapus.';
             if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan pada data kategori.';
         }
 
         $daftarKategori = $this->kategoriModel->getAllKategori($keyword);
-        require_once 'Views/admin_kategori.php';
+        require_once __DIR__ . '/../views/admin_kategori.php';
     }
 
     public function tambah_kategori() {
@@ -180,7 +177,7 @@ class AdminController {
             if (!empty($nama_kategori)) {
                 try {
                     $this->kategoriModel->createKategori($nama_kategori);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menambahkan kategori: ' . $nama_kategori);
+                    $this->userModel->recordLog($this->getUserId(), 'Menambah Kategori', "Kategori: {$nama_kategori}");
                     header('Location: index.php?c=admin&a=kategori&status=added');
                     exit;
                 } catch (Exception $e) {
@@ -197,10 +194,11 @@ class AdminController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)($_POST['id'] ?? 0);
             $nama_kategori = trim($_POST['nama_kategori'] ?? '');
+
             if ($id > 0 && !empty($nama_kategori)) {
                 try {
                     $this->kategoriModel->updateKategori($id, $nama_kategori);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mengubah kategori ID ' . $id . ' menjadi: ' . $nama_kategori);
+                    $this->userModel->recordLog($this->getUserId(), 'Mengubah Kategori', "ID: {$id}, Nama: {$nama_kategori}");
                     header('Location: index.php?c=admin&a=kategori&status=updated');
                     exit;
                 } catch (Exception $e) {
@@ -217,8 +215,10 @@ class AdminController {
         $id = (int)($_GET['id'] ?? 0);
         if ($id > 0) {
             try {
+                $kat = $this->kategoriModel->getKategoriById($id);
+                $nama = $kat['nama_kategori'] ?? "ID #{$id}";
                 $this->kategoriModel->deleteKategori($id);
-                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus kategori ID: ' . $id);
+                $this->userModel->recordLog($this->getUserId(), 'Menghapus Kategori', "Menghapus kategori: {$nama}");
                 header('Location: index.php?c=admin&a=kategori&status=deleted');
                 exit;
             } catch (Exception $e) {
@@ -231,7 +231,7 @@ class AdminController {
     }
 
     // ==========================================
-    // CRUD DATA PENGGUNA (USERS)
+    // CRUD DATA PENGGUNA (USER)
     // ==========================================
     public function pengguna() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -239,35 +239,27 @@ class AdminController {
         $error = '';
 
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'added') $message = 'Pengguna baru berhasil ditambahkan.';
+            if ($_GET['status'] === 'added') $message = 'Data pengguna baru berhasil dibuat.';
             if ($_GET['status'] === 'updated') $message = 'Data pengguna berhasil diperbarui.';
-            if ($_GET['status'] === 'deleted') $message = 'Pengguna berhasil dihapus.';
-            if ($_GET['status'] === 'exists') $error = 'Username sudah digunakan, silakan pilih username lain.';
-            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses data pengguna.';
+            if ($_GET['status'] === 'deleted') $message = 'Data pengguna berhasil dihapus.';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses pengguna.';
         }
 
         $daftarPengguna = $this->userModel->getAllUsers($keyword);
-        require_once 'Views/admin_pengguna.php';
+        require_once __DIR__ . '/../views/admin_pengguna.php';
     }
 
     public function tambah_pengguna() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
-            $username     = trim($_POST['username'] ?? '');
-            $password     = trim($_POST['password'] ?? '');
-            $role         = trim($_POST['role'] ?? 'peminjam');
-            $alamat       = trim($_POST['alamat'] ?? '');
-            $no_hp        = trim($_POST['no_hp'] ?? '');
+            $nama     = trim($_POST['nama'] ?? '');
+            $username = trim($_POST['username'] ?? '');
+            $password = trim($_POST['password'] ?? '');
+            $role     = trim($_POST['role'] ?? 'peminjam');
 
-            if (!empty($nama_lengkap) && !empty($username) && !empty($password)) {
-                if ($this->userModel->isUsernameExists($username)) {
-                    header('Location: index.php?c=admin&a=pengguna&status=exists');
-                    exit;
-                }
-
+            if (!empty($nama) && !empty($username) && !empty($password)) {
                 try {
-                    $this->userModel->register($nama_lengkap, $username, $password, $role, $alamat, $no_hp);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menambahkan pengguna baru: ' . $username . " ($role)");
+                    $this->userModel->createUser($nama, $username, $password, $role);
+                    $this->userModel->recordLog($this->getUserId(), 'Menambah Pengguna', "User: {$username}, Role: {$role}");
                     header('Location: index.php?c=admin&a=pengguna&status=added');
                     exit;
                 } catch (Exception $e) {
@@ -282,23 +274,16 @@ class AdminController {
 
     public function ubah_pengguna() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_users     = (int)($_POST['id_users'] ?? 0);
-            $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
-            $username     = trim($_POST['username'] ?? '');
-            $password     = trim($_POST['password'] ?? '');
-            $role         = trim($_POST['role'] ?? 'peminjam');
-            $alamat       = trim($_POST['alamat'] ?? '');
-            $no_hp        = trim($_POST['no_hp'] ?? '');
+            $id_user  = (int)($_POST['id_user'] ?? 0);
+            $nama     = trim($_POST['nama'] ?? '');
+            $username = trim($_POST['username'] ?? '');
+            $password = trim($_POST['password'] ?? '');
+            $role     = trim($_POST['role'] ?? 'peminjam');
 
-            if ($id_users > 0 && !empty($nama_lengkap) && !empty($username)) {
-                if ($this->userModel->isUsernameExists($username, $id_users)) {
-                    header('Location: index.php?c=admin&a=pengguna&status=exists');
-                    exit;
-                }
-
+            if ($id_user > 0 && !empty($nama) && !empty($username)) {
                 try {
-                    $this->userModel->updateUser($id_users, $nama_lengkap, $username, $role, !empty($password) ? $password : null, $alamat, $no_hp);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Memperbarui data pengguna: ' . $username);
+                    $this->userModel->updateUser($id_user, $nama, $username, $role, !empty($password) ? $password : null);
+                    $this->userModel->recordLog($this->getUserId(), 'Mengubah Pengguna', "User ID: {$id_user}, Username: {$username}");
                     header('Location: index.php?c=admin&a=pengguna&status=updated');
                     exit;
                 } catch (Exception $e) {
@@ -312,13 +297,19 @@ class AdminController {
     }
 
     public function hapus_pengguna() {
-        $id_users = (int)($_GET['id'] ?? 0);
-        // Cegah menghapus akun sendiri yang sedang aktif
-        if ($id_users > 0 && $id_users != $_SESSION['user']['id_users']) {
+        $id_user = (int)($_GET['id'] ?? 0);
+        if ($id_user > 0) {
+            // Cegah menghapus akun yang sedang login
+            if ($id_user == $this->getUserId()) {
+                header('Location: index.php?c=admin&a=pengguna&status=error');
+                exit;
+            }
+
             try {
-                $user = $this->userModel->getUserById($id_users);
-                $this->userModel->deleteUser($id_users);
-                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus pengguna: ' . ($user['username'] ?? "ID $id_users"));
+                $user = $this->userModel->getUserById($id_user);
+                $uname = $user['username'] ?? "ID #{$id_user}";
+                $this->userModel->deleteUser($id_user);
+                $this->userModel->recordLog($this->getUserId(), 'Menghapus Pengguna', "Menghapus akun: {$uname}");
                 header('Location: index.php?c=admin&a=pengguna&status=deleted');
                 exit;
             } catch (Exception $e) {
@@ -331,21 +322,7 @@ class AdminController {
     }
 
     // ==========================================
-    // LOG AKTIVITAS
-    // ==========================================
-    public function log() {
-        $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
-        $searchPeminjaman = isset($_GET['search_peminjaman']) ? trim($_GET['search_peminjaman']) : '';
-
-        $daftarLog = $this->userModel->getLogs($keyword);
-        $daftarPeminjamanAktif = $this->peminjamanModel->getPeminjamanAktif($searchPeminjaman);
-        $totalPeminjamanAktif = $this->peminjamanModel->countPeminjamanAktif();
-
-        require_once 'Views/admin_log.php';
-    }
-
-    // ==========================================
-    // CRUD DATA PEMINJAMAN (OFFLINE & ONLINE)
+    // CRUD DATA PEMINJAMAN
     // ==========================================
     public function peminjaman() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -353,65 +330,46 @@ class AdminController {
         $error = '';
 
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'added') $message = 'Data peminjaman berhasil dicatat.';
+            if ($_GET['status'] === 'added') $message = 'Peminjaman alat lab berhasil dicatat.';
             if ($_GET['status'] === 'updated') $message = 'Data peminjaman berhasil diperbarui.';
             if ($_GET['status'] === 'deleted') $message = 'Data peminjaman berhasil dihapus.';
-            if ($_GET['status'] === 'stok_kurang') $error = 'Stok alat tidak mencukupi untuk jumlah yang dipinjam!';
-            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan pada data peminjaman.';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses data peminjaman.';
         }
 
         $daftarPeminjaman = $this->peminjamanModel->getAllPeminjaman($keyword);
+        $daftarPeminjam = $this->peminjamModel->getAllPeminjam();
         $daftarAlat = $this->alatModel->getAllAlat();
-        $daftarUser = $this->userModel->getAllUsers();
 
-        require_once 'Views/admin_peminjaman.php';
+        require_once __DIR__ . '/../views/admin_peminjaman.php';
     }
 
     public function tambah_peminjaman() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
-            $username        = trim($_POST['username'] ?? '');
-            $no_hp           = trim($_POST['no_hp'] ?? '');
-            $alamat          = trim($_POST['alamat'] ?? '');
-            $id_alat         = (int)($_POST['id_alat'] ?? 0);
-            $jumlah          = (int)($_POST['jumlah'] ?? 1);
-            $tanggal_pinjam  = trim($_POST['tanggal_pinjam'] ?? date('Y-m-d'));
-            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? '');
-            $status          = trim($_POST['status'] ?? 'dipinjam');
+            $id_peminjam             = (int)($_POST['id_peminjam'] ?? 0);
+            $id_alat                 = (int)($_POST['id_alat'] ?? 0);
+            $jumlah                  = (int)($_POST['jumlah'] ?? 1);
+            $tanggal_pinjam          = trim($_POST['tanggal_pinjam'] ?? date('Y-m-d'));
+            $tanggal_rencana_kembali = trim($_POST['tanggal_rencana_kembali'] ?? date('Y-m-d', strtotime('+3 days')));
+            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $keperluan               = trim($_POST['keperluan'] ?? '');
+            $status                  = trim($_POST['status'] ?? 'disetujui');
 
-            if (!empty($nama_lengkap) && !empty($username) && $id_alat > 0 && $jumlah > 0 && !empty($tanggal_kembali)) {
-                // Cek stok alat jika statusnya dipinjam
-                $alat = $this->alatModel->getAlatById($id_alat);
-                if ($status === 'dipinjam' && $alat && $alat['jumlah_stok'] < $jumlah) {
-                    header('Location: index.php?c=admin&a=peminjaman&status=stok_kurang');
-                    exit;
-                }
-
+            if ($id_peminjam > 0 && $id_alat > 0 && $jumlah > 0) {
                 try {
-                    // Cek apakah user dengan username ini sudah ada di tabel users
-                    $user = $this->userModel->getUserByUsername($username);
-                    if ($user) {
-                        $id_user = $user['id_users'];
-                        // Update nama, alamat, no_hp jika ada
-                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $user['role'], null, $alamat, $no_hp);
-                    } else {
-                        // Jika belum ada, daftarkan otomatis peminjam offline ke tabel users
-                        $defaultPassword = 'offline_' . time();
-                        $this->userModel->register($nama_lengkap, $username, $defaultPassword, 'peminjam', $alamat, $no_hp);
-                        $newUser = $this->userModel->getUserByUsername($username);
-                        $id_user = $newUser ? $newUser['id_users'] : 0;
-                    }
-
-                    if ($id_user > 0) {
-                        $this->peminjamanModel->createPeminjaman($id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status);
-                        $namaAlat = $alat ? $alat['nama_alat'] : "ID $id_alat";
-                        $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mencatat peminjaman offline: ' . $namaAlat . ' untuk ' . $nama_lengkap);
-                        header('Location: index.php?c=admin&a=peminjaman&status=added');
-                        exit;
-                    } else {
-                        header('Location: index.php?c=admin&a=peminjaman&status=error');
-                        exit;
-                    }
+                    $newId = $this->peminjamanModel->createPeminjaman(
+                        $id_peminjam,
+                        $this->getUserId(),
+                        $tanggal_pinjam,
+                        $tanggal_rencana_kembali,
+                        $jenis_peminjaman,
+                        $keperluan,
+                        $id_alat,
+                        $jumlah,
+                        $status
+                    );
+                    $this->userModel->recordLog($this->getUserId(), 'Mencatat Peminjaman', "Peminjaman ID #{$newId} (Status: {$status})");
+                    header('Location: index.php?c=admin&a=peminjaman&status=added');
+                    exit;
                 } catch (Exception $e) {
                     header('Location: index.php?c=admin&a=peminjaman&status=error');
                     exit;
@@ -424,29 +382,30 @@ class AdminController {
 
     public function ubah_peminjaman() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_peminjaman   = (int)($_POST['id_peminjaman'] ?? 0);
-            $id_user         = (int)($_POST['id_user'] ?? 0);
-            $nama_lengkap    = trim($_POST['nama_lengkap'] ?? '');
-            $username        = trim($_POST['username'] ?? '');
-            $no_hp           = trim($_POST['no_hp'] ?? '');
-            $alamat          = trim($_POST['alamat'] ?? '');
-            $id_alat         = (int)($_POST['id_alat'] ?? 0);
-            $jumlah          = (int)($_POST['jumlah'] ?? 1);
-            $tanggal_pinjam  = trim($_POST['tanggal_pinjam'] ?? '');
-            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? '');
-            $status          = trim($_POST['status'] ?? 'dipinjam');
+            $id                      = (int)($_POST['id'] ?? 0);
+            $id_peminjam             = (int)($_POST['id_peminjam'] ?? 0);
+            $id_alat                 = (int)($_POST['id_alat'] ?? 0);
+            $jumlah                  = (int)($_POST['jumlah'] ?? 1);
+            $tanggal_pinjam          = trim($_POST['tanggal_pinjam'] ?? '');
+            $tanggal_rencana_kembali = trim($_POST['tanggal_rencana_kembali'] ?? '');
+            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $keperluan               = trim($_POST['keperluan'] ?? '');
+            $status                  = trim($_POST['status'] ?? 'menunggu');
 
-            if ($id_peminjaman > 0 && $id_alat > 0 && $jumlah > 0 && !empty($tanggal_kembali)) {
+            if ($id > 0 && $id_peminjam > 0) {
                 try {
-                    // Update data peminjam di tabel user jika ada
-                    if ($id_user > 0 && !empty($nama_lengkap) && !empty($username)) {
-                        $existingUser = $this->userModel->getUserById($id_user);
-                        $role = $existingUser ? $existingUser['role'] : 'peminjam';
-                        $this->userModel->updateUser($id_user, $nama_lengkap, $username, $role, null, $alamat, $no_hp);
-                    }
-
-                    $this->peminjamanModel->updatePeminjaman($id_peminjaman, $id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mengubah data peminjaman ID #' . $id_peminjaman . ' (Status: ' . $status . ')');
+                    $this->peminjamanModel->updatePeminjaman(
+                        $id,
+                        $id_peminjam,
+                        $tanggal_pinjam,
+                        $tanggal_rencana_kembali,
+                        $jenis_peminjaman,
+                        $keperluan,
+                        $status,
+                        $id_alat > 0 ? $id_alat : null,
+                        $jumlah > 0 ? $jumlah : null
+                    );
+                    $this->userModel->recordLog($this->getUserId(), 'Mengubah Data Peminjaman', "Peminjaman ID #{$id}");
                     header('Location: index.php?c=admin&a=peminjaman&status=updated');
                     exit;
                 } catch (Exception $e) {
@@ -464,7 +423,7 @@ class AdminController {
         if ($id > 0) {
             try {
                 $this->peminjamanModel->deletePeminjaman($id);
-                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus data peminjaman ID #' . $id);
+                $this->userModel->recordLog($this->getUserId(), 'Menghapus Peminjaman', "ID Peminjaman #{$id}");
                 header('Location: index.php?c=admin&a=peminjaman&status=deleted');
                 exit;
             } catch (Exception $e) {
@@ -477,7 +436,7 @@ class AdminController {
     }
 
     // ==========================================
-    // CRUD DATA PENGEMBALIAN (OFFLINE & ONLINE)
+    // CRUD DATA PENGEMBALIAN
     // ==========================================
     public function pengembalian() {
         $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -485,36 +444,37 @@ class AdminController {
         $error = '';
 
         if (isset($_GET['status'])) {
-            if ($_GET['status'] === 'added') $message = 'Data pengembalian alat berhasil dicatat.';
+            if ($_GET['status'] === 'added') $message = 'Pengembalian alat lab berhasil dicatat.';
             if ($_GET['status'] === 'updated') $message = 'Data pengembalian berhasil diperbarui.';
             if ($_GET['status'] === 'deleted') $message = 'Data pengembalian berhasil dihapus.';
             if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan saat memproses data pengembalian.';
         }
 
         $daftarPengembalian = $this->pengembalianModel->getAllPengembalian($keyword);
-        $peminjamanAktif = $this->pengembalianModel->getPeminjamanSiapKembali();
+        $peminjamanAktif = $this->peminjamanModel->getActivePeminjaman();
 
-        require_once 'Views/admin_pengembalian.php';
+        require_once __DIR__ . '/../views/admin_pengembalian.php';
     }
 
     public function tambah_pengembalian() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_peminjaman        = (int)($_POST['id_peminjaman'] ?? 0);
-            $tanggal_pengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
-            $denda_tambahan       = (float)($_POST['denda_tambahan'] ?? ($_POST['denda'] ?? 0));
-            $keterangan           = trim($_POST['keterangan'] ?? '');
+            $id_peminjaman   = (int)($_POST['id_peminjaman'] ?? 0);
+            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? date('Y-m-d'));
+            $kondisi_kembali = trim($_POST['kondisi_kembali'] ?? 'Baik');
+            $denda           = (float)($_POST['denda'] ?? 0);
 
-            if ($id_peminjaman > 0 && !empty($tanggal_pengembalian)) {
+            if ($id_peminjaman > 0) {
                 try {
-                    $result = $this->pengembalianModel->createPengembalian($id_peminjaman, $tanggal_pengembalian, $denda_tambahan, $keterangan);
-                    if ($result) {
-                        $this->userModel->recordLog($_SESSION['user']['id_users'], 'Mencatat pengembalian alat untuk Transaksi Peminjaman #' . $id_peminjaman);
-                        header('Location: index.php?c=admin&a=pengembalian&status=added');
-                        exit;
-                    } else {
-                        header('Location: index.php?c=admin&a=pengembalian&status=error');
-                        exit;
-                    }
+                    $newId = $this->pengembalianModel->createPengembalian(
+                        $id_peminjaman,
+                        $tanggal_kembali,
+                        $kondisi_kembali,
+                        $denda,
+                        $this->getUserId()
+                    );
+                    $this->userModel->recordLog($this->getUserId(), 'Mencatat Pengembalian', "Pengembalian ID #{$newId} (Peminjaman #{$id_peminjaman})");
+                    header('Location: index.php?c=admin&a=pengembalian&status=added');
+                    exit;
                 } catch (Exception $e) {
                     header('Location: index.php?c=admin&a=pengembalian&status=error');
                     exit;
@@ -527,15 +487,15 @@ class AdminController {
 
     public function ubah_pengembalian() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $id_pengembalian      = (int)($_POST['id_pengembalian'] ?? 0);
-            $tanggal_pengembalian = trim($_POST['tanggal_pengembalian'] ?? date('Y-m-d'));
-            $denda_tambahan       = (float)($_POST['denda_tambahan'] ?? ($_POST['denda'] ?? 0));
-            $keterangan           = trim($_POST['keterangan'] ?? '');
+            $id              = (int)($_POST['id'] ?? 0);
+            $tanggal_kembali = trim($_POST['tanggal_kembali'] ?? date('Y-m-d'));
+            $kondisi_kembali = trim($_POST['kondisi_kembali'] ?? 'Baik');
+            $denda           = (float)($_POST['denda'] ?? 0);
 
-            if ($id_pengembalian > 0 && !empty($tanggal_pengembalian)) {
+            if ($id > 0) {
                 try {
-                    $this->pengembalianModel->updatePengembalian($id_pengembalian, $tanggal_pengembalian, $denda_tambahan, $keterangan);
-                    $this->userModel->recordLog($_SESSION['user']['id_users'], 'Memperbarui data pengembalian ID #' . $id_pengembalian);
+                    $this->pengembalianModel->updatePengembalian($id, $tanggal_kembali, $kondisi_kembali, $denda);
+                    $this->userModel->recordLog($this->getUserId(), 'Mengubah Pengembalian', "Pengembalian ID #{$id}");
                     header('Location: index.php?c=admin&a=pengembalian&status=updated');
                     exit;
                 } catch (Exception $e) {
@@ -553,7 +513,7 @@ class AdminController {
         if ($id > 0) {
             try {
                 $this->pengembalianModel->deletePengembalian($id);
-                $this->userModel->recordLog($_SESSION['user']['id_users'], 'Menghapus catatan pengembalian ID #' . $id);
+                $this->userModel->recordLog($this->getUserId(), 'Menghapus Pengembalian', "Pengembalian ID #{$id}");
                 header('Location: index.php?c=admin&a=pengembalian&status=deleted');
                 exit;
             } catch (Exception $e) {
@@ -563,5 +523,17 @@ class AdminController {
         }
         header('Location: index.php?c=admin&a=pengembalian');
         exit;
+    }
+
+    // ==========================================
+    // LOG AKTIVITAS
+    // ==========================================
+    public function log() {
+        $keyword = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $daftarLog = $this->userModel->getAllLogs($keyword);
+        $totalPeminjamanAktif = count($this->peminjamanModel->getActivePeminjaman());
+        $daftarPeminjamanAktif = $this->peminjamanModel->getActivePeminjaman();
+
+        require_once __DIR__ . '/../views/admin_log.php';
     }
 }

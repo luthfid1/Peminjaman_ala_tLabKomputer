@@ -1,17 +1,17 @@
 <?php
 $activePage = 'peminjaman';
-$pageTitle = 'Kelola Peminjaman Alat - SEWANADA';
-require_once 'Views/admin_header.php';
+$pageTitle = 'Kelola Peminjaman Alat - Pengelola Lab';
+require_once __DIR__ . '/admin_header.php';
 ?>
 
 <div class="admin-header-row">
     <div>
-        <span class="admin-date-label">TRANSAKSI & SIRKULASI</span>
-        <h1 class="admin-title">Kelola Peminjaman</h1>
-        <p class="admin-subtitle">Catat peminjaman offline (langsung di studio), kelola data transaksi, dan pantau masa pinjam.</p>
+        <span class="admin-date-label">SIRKULASI LABORATORIUM</span>
+        <h1 class="admin-title">Kelola Data Peminjaman</h1>
+        <p class="admin-subtitle">Catat peminjaman langsung di lab, kelola permohonan peminjaman siswa, dan pantau tenggat pengembalian.</p>
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahPeminjaman')">
-        + Catat Peminjaman (Offline)
+        + Catat Peminjaman Lab
     </button>
 </div>
 
@@ -32,8 +32,8 @@ require_once 'Views/admin_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Daftar Seluruh Peminjaman</h3>
-            <p class="inventory-sub">Total <?= count($daftarPeminjaman) ?> transaksi peminjaman tercatat.</p>
+            <h3 class="inventory-title">Daftar Peminjaman Alat Lab</h3>
+            <p class="inventory-sub">Total <?= count($daftarPeminjaman) ?> catatan peminjaman dalam sistem.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="admin">
@@ -44,7 +44,7 @@ require_once 'Views/admin_header.php';
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="text" name="search" placeholder="Cari peminjam, kontak, atau alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <input type="text" name="search" placeholder="Cari kode, nama siswa, alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
         </form>
     </div>
 
@@ -52,11 +52,12 @@ require_once 'Views/admin_header.php';
         <thead>
             <tr>
                 <th>No</th>
-                <th>Peminjam & Kontak</th>
-                <th>Alat Musik</th>
-                <th>Jumlah</th>
+                <th>Kode & Siswa</th>
+                <th>Alat Lab</th>
+                <th>Jml</th>
                 <th>Tgl Pinjam</th>
-                <th>Tgl Kembali</th>
+                <th>Rencana Kembali</th>
+                <th>Keperluan</th>
                 <th>Status</th>
                 <th style="text-align: right;">Aksi</th>
             </tr>
@@ -64,69 +65,48 @@ require_once 'Views/admin_header.php';
         <tbody>
             <?php if (empty($daftarPeminjaman)): ?>
                 <tr>
-                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Belum ada data transaksi peminjaman. Klik "+ Catat Peminjaman (Offline)" untuk menambahkan peminjaman baru secara manual.
+                    <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Belum ada transaksi peminjaman alat lab. Klik "+ Catat Peminjaman Lab" untuk membuat baru.
                     </td>
                 </tr>
             <?php else: ?>
                 <?php $no = 1; foreach ($daftarPeminjaman as $p): 
                     $status = strtolower($p['status']);
-                    $statusBadgeClass = 'badge-busy';
-                    $statusLabel = ucfirst($status);
+                    $statusClass = 'badge-busy';
+                    $statusText = ucfirst($status);
 
-                    if ($status === 'menunggu') {
-                        $statusBadgeClass = 'badge-busy';
-                        $statusLabel = 'Menunggu';
-                    } elseif ($status === 'disetujui') {
-                        $statusBadgeClass = 'badge-ready';
-                        $statusLabel = 'Disetujui';
-                    } elseif ($status === 'dipinjam') {
-                        $statusBadgeClass = 'badge-ready';
-                        $statusLabel = 'Dipinjam';
+                    if ($status === 'disetujui' || $status === 'dipinjam') {
+                        $statusClass = 'badge-ready';
                     } elseif ($status === 'dikembalikan') {
-                        $statusBadgeClass = 'badge-ready';
-                        $statusLabel = 'Selesai';
+                        $statusClass = 'badge-ready';
+                        $statusText = 'Selesai';
                     } elseif ($status === 'ditolak') {
-                        $statusBadgeClass = 'badge-busy';
-                        $statusLabel = 'Ditolak';
+                        $statusClass = 'badge-busy';
                     }
                 ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td class="col-instrument-name">
-                            <?= htmlspecialchars($p['nama_lengkap'] ?? 'User #' . $p['id_user']) ?>
-                            <div style="font-size: 12px; font-weight: 400; color: var(--text-muted);">
-                                @<?= htmlspecialchars($p['username'] ?? '-') ?>
-                                <?php if (!empty($p['no_hp'])): ?>
-                                    &bull; 📞 <?= htmlspecialchars($p['no_hp']) ?>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-                        <td class="col-instrument-name">
-                            <?= htmlspecialchars($p['nama_alat'] ?? 'Alat #' . $p['id_alat']) ?>
-                            <div style="font-size: 12px; font-weight: 400; color: var(--text-muted);">
-                                <?= htmlspecialchars($p['nama_kategori'] ?? 'Kategori') ?> &bull; Rp<?= number_format($p['harga_sewa'] ?? 0, 0, ',', '.') ?>/hari
-                            </div>
-                        </td>
-                        <td style="font-weight: 600; text-align: center;"><?= (int)$p['jumlah'] ?> unit</td>
-                        <td><?= !empty($p['tanggal_pinjam']) ? date('d M Y', strtotime($p['tanggal_pinjam'])) : '-' ?></td>
-                        <td><?= !empty($p['tanggal_kembali']) ? date('d M Y', strtotime($p['tanggal_kembali'])) : '-' ?></td>
                         <td>
-                            <span class="status-badge <?= $statusBadgeClass ?>" style="<?php
-                                if ($status === 'menunggu') echo 'background: rgba(245,158,11,0.15); color: #d97706; border: 1px solid rgba(245,158,11,0.3);';
-                                elseif ($status === 'disetujui') echo 'background: rgba(59,130,246,0.15); color: #2563eb; border: 1px solid rgba(59,130,246,0.3);';
-                                elseif ($status === 'dipinjam') echo 'background: rgba(16,185,129,0.15); color: #059669; border: 1px solid rgba(16,185,129,0.3);';
-                                elseif ($status === 'dikembalikan') echo 'background: rgba(100,116,139,0.15); color: #475569; border: 1px solid rgba(100,116,139,0.3);';
-                                elseif ($status === 'ditolak') echo 'background: rgba(239,68,68,0.15); color: #dc2626; border: 1px solid rgba(239,68,68,0.3);';
-                            ?>">
-                                <?= $statusLabel ?>
-                            </span>
+                            <div style="font-family: monospace; font-size: 11px; font-weight: 700; color: var(--primary-teal);"><?= htmlspecialchars($p['kode_peminjaman']) ?></div>
+                            <strong style="color: var(--primary-navy);"><?= htmlspecialchars($p['nama_peminjam'] ?? 'Siswa') ?></strong>
+                            <div style="font-size: 11px; color: var(--text-muted);">NIS: <?= htmlspecialchars($p['nis'] ?? '-') ?> &bull; <?= htmlspecialchars($p['kelas'] ?? '') ?></div>
+                        </td>
+                        <td class="col-instrument-name">
+                            <?= htmlspecialchars($p['nama_alat'] ?? 'Alat Lab') ?>
+                            <div style="font-size: 11px; color: var(--text-muted);"><?= htmlspecialchars($p['nama_kategori'] ?? '') ?></div>
+                        </td>
+                        <td><strong><?= (int)$p['jumlah'] ?></strong> unit</td>
+                        <td><?= date('d M Y', strtotime($p['tanggal_pinjam'])) ?></td>
+                        <td><strong style="color: #0369a1;"><?= date('d M Y', strtotime($p['tanggal_rencana_kembali'])) ?></strong></td>
+                        <td style="max-width: 180px; font-size: 12px; color: var(--text-muted);"><?= htmlspecialchars($p['keperluan'] ?? '-') ?></td>
+                        <td>
+                            <span class="status-badge <?= $statusClass ?>"><?= $statusText ?></span>
                         </td>
                         <td class="table-actions-cell">
                             <button type="button" class="btn-action-edit" onclick='editPeminjaman(<?= json_encode($p) ?>)'>
                                 Ubah
                             </button>
-                            <a href="index.php?c=admin&a=hapus_peminjaman&id=<?= $p['id_peminjaman'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus data transaksi peminjaman ini?')">
+                            <a href="index.php?c=admin&a=hapus_peminjaman&id=<?= $p['id'] ?>" class="btn-action-delete" onclick="return confirm('Yakin ingin menghapus data peminjaman ini?')">
                                 Hapus
                             </a>
                         </td>
@@ -137,91 +117,78 @@ require_once 'Views/admin_header.php';
     </table>
 </section>
 
-<!-- MODAL TAMBAH PEMINJAMAN (PENCATATAN OFFLINE DENGAN INPUT DATA DIRI MANUAL) -->
+<!-- MODAL TAMBAH PEMINJAMAN -->
 <div class="modal-overlay" id="modalTambahPeminjaman">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content">
         <div class="modal-header">
-            <div>
-                <h3 class="modal-title">Catat Peminjaman Offline</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Input manual data diri peminjam langsung di tempat tanpa perlu login akun.</p>
-            </div>
+            <h3 class="modal-title">Catat Peminjaman Alat Lab</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalTambahPeminjaman')">&times;</button>
         </div>
         <form method="POST" action="index.php?c=admin&a=tambah_peminjaman">
-            <!-- DATA PEMINJAM (MANUAL INPUT) -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                <div style="font-size: 12px; font-weight: 800; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Data Diri Peminjam (Offline)
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Nama Lengkap Peminjam <span style="color:#ef4444;">*</span></label>
-                    <input type="text" name="nama_lengkap" class="form-control" placeholder="Contoh: Budi Santoso" required>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                        <label class="form-label">Username / Identitas <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="username" class="form-control" placeholder="Contoh: budi_off / NIS" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">No. HP / WhatsApp <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="no_hp" class="form-control" placeholder="Contoh: 081234567890" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Alamat</label>
-                    <input type="text" name="alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
-                </div>
-            </div>
-
-            <!-- DETAIL ALAT & PINJAM -->
             <div class="form-group">
-                <label class="form-label">Pilih Alat Musik <span style="color:#ef4444;">*</span></label>
-                <select name="id_alat" class="form-control" required>
-                    <option value="">-- Pilih Alat yang Dipinjam --</option>
-                    <?php foreach ($daftarAlat as $a): ?>
-                        <option value="<?= $a['id_alat'] ?>">
-                            <?= htmlspecialchars($a['nama_alat']) ?> (Tersedia: <?= (int)$a['jumlah_stok'] ?> unit | Rp<?= number_format($a['harga_sewa'], 0, ',', '.') ?>/hari)
-                        </option>
+                <label class="form-label">Peminjam (Siswa)</label>
+                <select name="id_peminjam" class="form-control" required>
+                    <option value="">-- Pilih Siswa / Peminjam --</option>
+                    <?php foreach ($daftarPeminjam as $pm): ?>
+                        <option value="<?= $pm['id'] ?>"><?= htmlspecialchars($pm['nama']) ?> (NIS: <?= htmlspecialchars($pm['nis']) ?> - <?= htmlspecialchars($pm['kelas']) ?>)</option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Jumlah Unit <span style="color:#ef4444;">*</span></label>
-                <input type="number" name="jumlah" class="form-control" value="1" min="1" required>
+                <label class="form-label">Alat Laboratorium</label>
+                <select name="id_alat" class="form-control" required>
+                    <option value="">-- Pilih Alat Lab --</option>
+                    <?php foreach ($daftarAlat as $al): ?>
+                        <option value="<?= $al['id'] ?>"><?= htmlspecialchars($al['nama_alat']) ?> (Stok: <?= (int)$al['jumlah'] ?>)</option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="form-group">
-                    <label class="form-label">Tanggal Pinjam <span style="color:#ef4444;">*</span></label>
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jumlah Pinjam</label>
+                    <input type="number" name="jumlah" class="form-control" min="1" value="1" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jenis Peminjaman</label>
+                    <select name="jenis_peminjaman" class="form-control" required>
+                        <option value="Praktek Lab">Praktek Lab</option>
+                        <option value="Tugas Akhir / UKK">Tugas Akhir / UKK</option>
+                        <option value="Kegiatan Ekstrakurikuler">Kegiatan Ekstrakurikuler</option>
+                        <option value="Lomba Kejuruan (LKS)">Lomba Kejuruan (LKS)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tanggal Pinjam</label>
                     <input type="date" name="tanggal_pinjam" class="form-control" value="<?= date('Y-m-d') ?>" required>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Tanggal Rencana Kembali <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tanggal Rencana Kembali</label>
+                    <input type="date" name="tanggal_rencana_kembali" class="form-control" value="<?= date('Y-m-d', strtotime('+3 days')) ?>" required>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Keperluan Peminjaman</label>
+                <textarea name="keperluan" class="form-control" rows="2" placeholder="Contoh: Praktikum konfigurasi router mikroTik"></textarea>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Status Peminjaman</label>
                 <select name="status" class="form-control" required>
-                    <option value="dipinjam" selected>Dipinjam (Instrumen langsung dibawa peminjam)</option>
-                    <option value="disetujui">Disetujui (Menunggu diambil)</option>
-                    <option value="menunggu">Menunggu</option>
+                    <option value="disetujui">Disetujui (Langsung Aktif)</option>
+                    <option value="dipinjam">Dipinjam (Sedang Digunakan)</option>
+                    <option value="menunggu">Menunggu Persetujuan</option>
                 </select>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('modalTambahPeminjaman')">Batal</button>
-                <button type="submit" class="btn-modal-submit">Simpan Peminjaman Offline</button>
+                <button type="submit" class="btn-modal-submit">Simpan Peminjaman</button>
             </div>
         </form>
     </div>
@@ -229,85 +196,68 @@ require_once 'Views/admin_header.php';
 
 <!-- MODAL UBAH PEMINJAMAN -->
 <div class="modal-overlay" id="modalUbahPeminjaman">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content">
         <div class="modal-header">
-            <div>
-                <h3 class="modal-title">Ubah Data Peminjaman</h3>
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Perbarui data diri peminjam atau transaksi peminjaman.</p>
-            </div>
+            <h3 class="modal-title">Ubah Data Peminjaman</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalUbahPeminjaman')">&times;</button>
         </div>
         <form method="POST" action="index.php?c=admin&a=ubah_peminjaman">
-            <input type="hidden" name="id_peminjaman" id="edit_id_peminjaman">
-            <input type="hidden" name="id_user" id="edit_id_user">
+            <input type="hidden" name="id" id="edit_pmj_id">
 
-            <!-- DATA PEMINJAM -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                <div style="font-size: 12px; font-weight: 800; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Data Diri Peminjam
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Nama Lengkap Peminjam <span style="color:#ef4444;">*</span></label>
-                    <input type="text" name="nama_lengkap" id="edit_nama_lengkap" class="form-control" required>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="form-group">
-                        <label class="form-label">Username / Identitas <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="username" id="edit_username" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">No. HP / WhatsApp</label>
-                        <input type="text" name="no_hp" id="edit_no_hp" class="form-control" placeholder="Contoh: 081234567890">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Alamat</label>
-                    <input type="text" name="alamat" id="edit_alamat" class="form-control" placeholder="Contoh: Jl. Merdeka No. 10">
-                </div>
-            </div>
-
-            <!-- DETAIL TRANSAKSI -->
             <div class="form-group">
-                <label class="form-label">Alat Musik <span style="color:#ef4444;">*</span></label>
-                <select name="id_alat" id="edit_id_alat" class="form-control" required>
-                    <option value="">-- Pilih Alat --</option>
-                    <?php foreach ($daftarAlat as $a): ?>
-                        <option value="<?= $a['id_alat'] ?>">
-                            <?= htmlspecialchars($a['nama_alat']) ?> (Stok: <?= (int)$a['jumlah_stok'] ?>)
-                        </option>
+                <label class="form-label">Peminjam (Siswa)</label>
+                <select name="id_peminjam" id="edit_pmj_id_peminjam" class="form-control" required>
+                    <?php foreach ($daftarPeminjam as $pm): ?>
+                        <option value="<?= $pm['id'] ?>"><?= htmlspecialchars($pm['nama']) ?> (NIS: <?= htmlspecialchars($pm['nis']) ?>)</option>
                     <?php endforeach; ?>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Jumlah Unit <span style="color:#ef4444;">*</span></label>
-                <input type="number" name="jumlah" id="edit_jumlah" class="form-control" min="1" required>
+                <label class="form-label">Alat Laboratorium</label>
+                <select name="id_alat" id="edit_pmj_id_alat" class="form-control" required>
+                    <?php foreach ($daftarAlat as $al): ?>
+                        <option value="<?= $al['id'] ?>"><?= htmlspecialchars($al['nama_alat']) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="form-group">
-                    <label class="form-label">Tanggal Pinjam <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_pinjam" id="edit_tanggal_pinjam" class="form-control" required>
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jumlah Pinjam</label>
+                    <input type="number" name="jumlah" id="edit_pmj_jumlah" class="form-control" min="1" required>
                 </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Jenis Peminjaman</label>
+                    <select name="jenis_peminjaman" id="edit_pmj_jenis" class="form-control" required>
+                        <option value="Praktek Lab">Praktek Lab</option>
+                        <option value="Tugas Akhir / UKK">Tugas Akhir / UKK</option>
+                        <option value="Kegiatan Ekstrakurikuler">Kegiatan Ekstrakurikuler</option>
+                        <option value="Lomba Kejuruan (LKS)">Lomba Kejuruan (LKS)</option>
+                    </select>
+                </div>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tanggal Rencana Kembali <span style="color:#ef4444;">*</span></label>
-                    <input type="date" name="tanggal_kembali" id="edit_tanggal_kembali" class="form-control" required>
+            <div class="form-row" style="display: flex; gap: 16px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tanggal Pinjam</label>
+                    <input type="date" name="tanggal_pinjam" id="edit_pmj_tgl_pinjam" class="form-control" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tanggal Rencana Kembali</label>
+                    <input type="date" name="tanggal_rencana_kembali" id="edit_pmj_tgl_rencana" class="form-control" required>
                 </div>
             </div>
 
             <div class="form-group">
+                <label class="form-label">Keperluan Peminjaman</label>
+                <textarea name="keperluan" id="edit_pmj_keperluan" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Status Peminjaman</label>
-                <select name="status" id="edit_status" class="form-control" required>
-                    <option value="menunggu">Menunggu</option>
+                <select name="status" id="edit_pmj_status" class="form-control" required>
+                    <option value="menunggu">Menunggu Persetujuan</option>
                     <option value="disetujui">Disetujui</option>
                     <option value="dipinjam">Dipinjam</option>
                     <option value="dikembalikan">Dikembalikan</option>
@@ -317,7 +267,7 @@ require_once 'Views/admin_header.php';
 
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('modalUbahPeminjaman')">Batal</button>
-                <button type="submit" class="btn-modal-submit">Simpan Perubahan</button>
+                <button type="submit" class="btn-modal-submit">Perbarui Peminjaman</button>
             </div>
         </form>
     </div>
@@ -325,25 +275,23 @@ require_once 'Views/admin_header.php';
 
 <script>
 function openModal(id) {
-    document.getElementById(id).classList.add('active');
+    document.getElementById(id).style.display = 'flex';
 }
 function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+    document.getElementById(id).style.display = 'none';
 }
 function editPeminjaman(data) {
-    document.getElementById('edit_id_peminjaman').value = data.id_peminjaman;
-    document.getElementById('edit_id_user').value = data.id_user;
-    document.getElementById('edit_nama_lengkap').value = data.nama_lengkap || '';
-    document.getElementById('edit_username').value = data.username || '';
-    document.getElementById('edit_no_hp').value = data.no_hp || '';
-    document.getElementById('edit_alamat').value = data.Alamat || '';
-    document.getElementById('edit_id_alat').value = data.id_alat;
-    document.getElementById('edit_jumlah').value = data.jumlah;
-    document.getElementById('edit_tanggal_pinjam').value = data.tanggal_pinjam;
-    document.getElementById('edit_tanggal_kembali').value = data.tanggal_kembali;
-    document.getElementById('edit_status').value = data.status;
+    document.getElementById('edit_pmj_id').value = data.id;
+    document.getElementById('edit_pmj_id_peminjam').value = data.id_peminjam;
+    document.getElementById('edit_pmj_id_alat').value = data.id_alat || '';
+    document.getElementById('edit_pmj_jumlah').value = data.jumlah || 1;
+    document.getElementById('edit_pmj_jenis').value = data.jenis_peminjaman || 'Praktek Lab';
+    document.getElementById('edit_pmj_tgl_pinjam').value = data.tanggal_pinjam;
+    document.getElementById('edit_pmj_tgl_rencana').value = data.tanggal_rencana_kembali;
+    document.getElementById('edit_pmj_keperluan').value = data.keperluan || '';
+    document.getElementById('edit_pmj_status').value = data.status || 'menunggu';
     openModal('modalUbahPeminjaman');
 }
 </script>
 
-<?php require_once 'Views/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/admin_footer.php'; ?>

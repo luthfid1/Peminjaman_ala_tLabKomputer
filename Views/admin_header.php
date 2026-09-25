@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'Ruang Admin - SEWANADA') ?></title>
+    <title><?= htmlspecialchars($pageTitle ?? 'Ruang Admin Pengelola - Peminjaman Alat Lab Komputer') ?></title>
     <link rel="stylesheet" href="Assets/css/style.css">
 </head>
 <body>
@@ -13,14 +13,16 @@
         <div class="admin-navbar-brand-group">
             <a href="index.php?c=admin&a=dashboard" class="nav-brand">
                 <div class="brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </div>
-                <span class="brand-name">NARA BAND</span>
+                <span class="brand-name">LAB KOMPUTER</span>
             </a>
             <span class="admin-nav-separator">|</span>
-            <span class="admin-nav-subtext">Ruang Admin</span>
+            <span class="admin-nav-subtext">Pengelola Lab</span>
         </div>
 
         <div class="nav-user">
@@ -32,12 +34,12 @@
             </button>
             <div class="user-profile">
                 <div class="user-info">
-                    <span class="user-name"><?= htmlspecialchars($_SESSION['user']['nama_lengkap'] ?? 'Alya Rahma') ?></span>
-                    <span class="user-role">Administrator</span>
+                    <span class="user-name"><?= htmlspecialchars($_SESSION['user']['nama'] ?? $_SESSION['user']['nama_lengkap'] ?? 'Admin Pengelola') ?></span>
+                    <span class="user-role"><?= ucfirst(htmlspecialchars($_SESSION['user']['role'] ?? 'pengelola')) ?> Lab</span>
                 </div>
                 <div class="user-avatar">
                     <?php
-                        $nama = $_SESSION['user']['nama_lengkap'] ?? 'Alya Rahma';
+                        $nama = $_SESSION['user']['nama'] ?? $_SESSION['user']['nama_lengkap'] ?? 'Pengelola';
                         $parts = explode(' ', trim($nama));
                         $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
                         echo htmlspecialchars($initials);
@@ -54,8 +56,8 @@
         <aside class="sidebar">
             <div class="sidebar-mode-card">
                 <span class="mode-tag">MODE AKTIF</span>
-                <h2 class="mode-title">Admin</h2>
-                <p class="mode-desc">Kelola seluruh ekosistem Naraband.</p>
+                <h2 class="mode-title">Pengelola Lab</h2>
+                <p class="mode-desc">Akses penuh CRUD alat & manajemen peminjaman lab komputer.</p>
             </div>
 
             <ul class="admin-sidebar-menu">
@@ -77,7 +79,7 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        Daftar Alat
+                        Daftar Alat Lab
                     </a>
                 </li>
                 <li>
@@ -117,7 +119,7 @@
                             <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        Data Anggota
+                        Data Pengguna / User
                     </a>
                 </li>
                 <li>

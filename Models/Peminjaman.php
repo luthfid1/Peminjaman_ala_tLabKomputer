@@ -1,6 +1,6 @@
 <?php
 
-require_once 'Models/Database.php';
+require_once __DIR__ . '/Database.php';
 
 class Peminjaman {
     private $conn;
@@ -11,66 +11,88 @@ class Peminjaman {
         $this->conn = $database->getConnection();
     }
 
-    // Ambil semua peminjaman yang masih aktif (menunggu, disetujui, dipinjam)
-    public function getPeminjamanAktif($keyword = null) {
-        $query = "SELECT p.id_peminjaman, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         u.id_users, u.nama_lengkap, u.username, u.Alamat, u.no_hp, u.role,
-                         a.id_alat, a.nama_alat, a.harga_sewa,
+    public function generateKodePeminjaman() {
+        $prefix = "PMJ-" . date('Ymd') . "-";
+        try {
+            $query = "SELECT kode_peminjaman FROM " . $this->table_name . " 
+                      WHERE kode_peminjaman LIKE :prefix 
+                      ORDER BY id DESC LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $p = $prefix . "%";
+            $stmt->bindParam(':prefix', $p);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                $lastNum = (int)substr($row['kode_peminjaman'], -4);
+                $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $newNum = "0001";
+            }
+            return $prefix . $newNum;
+        } catch (Exception $e) {
+            return $prefix . rand(1000, 9999);
+        }
+    }
+
+    public function getAllPeminjaman($keyword = null, $statusFilter = null) {
+        $query = "SELECT p.*, 
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp,
+                         u.nama as nama_petugas,
+                         dp.id_alat, dp.jumlah,
+                         a.nama_alat, a.kode as kode_alat,
                          k.nama_kategori
                   FROM " . $this->table_name . " p
-                  LEFT JOIN users u ON p.id_user = u.id_users
-                  LEFT JOIN alat a ON p.id_alat = a.id_alat
-                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
-                  WHERE p.status IN ('menunggu', 'disetujui', 'dipinjam')";
+                  LEFT JOIN peminjam pm ON p.id_peminjam = pm.id
+                  LEFT JOIN user u ON p.id_user = u.id_user
+                  LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                  LEFT JOIN alat a ON dp.id_alat = a.id
+                  LEFT JOIN kategori k ON a.id_kategori = k.id
+                  WHERE 1=1";
 
-        if (!empty($keyword)) {
-            $query .= " AND (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR u.no_hp LIKE :keyword OR a.nama_alat LIKE :keyword)";
+        if (!empty($statusFilter)) {
+            $query .= " AND p.status = :statusFilter";
         }
 
-        $query .= " ORDER BY p.created_at DESC";
+        if (!empty($keyword)) {
+            $query .= " AND (p.kode_peminjaman LIKE :keyword 
+                        OR pm.nama LIKE :keyword 
+                        OR pm.nis LIKE :keyword 
+                        OR a.nama_alat LIKE :keyword 
+                        OR p.keperluan LIKE :keyword)";
+        }
+
+        $query .= " ORDER BY p.id DESC";
 
         $stmt = $this->conn->prepare($query);
-        if (!empty($keyword)) {
-            $kw = "%" . $keyword . "%";
-            $stmt->bindParam(':keyword', $kw);
+
+        if (!empty($statusFilter)) {
+            $stmt->bindParam(':statusFilter', $statusFilter);
         }
+
+        if (!empty($keyword)) {
+            $searchTerm = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $searchTerm);
+        }
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Ambil SEMUA data peminjaman (untuk Kelola Peminjaman oleh Admin)
-    public function getAllPeminjaman($keyword = null) {
-        $query = "SELECT p.id_peminjaman, p.id_user, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         u.nama_lengkap, u.username, u.Alamat, u.no_hp, u.role,
-                         a.nama_alat, a.harga_sewa,
-                         k.nama_kategori
-                  FROM " . $this->table_name . " p
-                  LEFT JOIN users u ON p.id_user = u.id_users
-                  LEFT JOIN alat a ON p.id_alat = a.id_alat
-                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori";
-
-        if (!empty($keyword)) {
-            $query .= " WHERE (u.nama_lengkap LIKE :keyword OR u.username LIKE :keyword OR u.no_hp LIKE :keyword OR a.nama_alat LIKE :keyword OR p.status LIKE :keyword)";
-        }
-
-        $query .= " ORDER BY p.id_peminjaman DESC";
-
-        $stmt = $this->conn->prepare($query);
-        if (!empty($keyword)) {
-            $kw = "%" . $keyword . "%";
-            $stmt->bindParam(':keyword', $kw);
-        }
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Ambil satu data peminjaman berdasarkan ID
     public function getPeminjamanById($id) {
-        $query = "SELECT p.*, u.nama_lengkap, u.username, a.nama_alat, a.harga_sewa 
+        $query = "SELECT p.*, 
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp,
+                         u.nama as nama_petugas,
+                         dp.id_alat, dp.jumlah,
+                         a.nama_alat, a.kode as kode_alat,
+                         k.nama_kategori
                   FROM " . $this->table_name . " p
-                  LEFT JOIN users u ON p.id_user = u.id_users
-                  LEFT JOIN alat a ON p.id_alat = a.id_alat
-                  WHERE p.id_peminjaman = :id
+                  LEFT JOIN peminjam pm ON p.id_peminjam = pm.id
+                  LEFT JOIN user u ON p.id_user = u.id_user
+                  LEFT JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                  LEFT JOIN alat a ON dp.id_alat = a.id
+                  LEFT JOIN kategori k ON a.id_kategori = k.id
+                  WHERE p.id = :id
                   LIMIT 1";
 
         $stmt = $this->conn->prepare($query);
@@ -79,179 +101,177 @@ class Peminjaman {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Tambah data peminjaman baru (offline / manual oleh Admin)
-    public function createPeminjaman($id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status = 'dipinjam') {
-        $query = "INSERT INTO " . $this->table_name . " (id_user, id_alat, jumlah, tanggal_pinjam, tanggal_kembali, status) 
-                  VALUES (:id_user, :id_alat, :jumlah, :tanggal_pinjam, :tanggal_kembali, :status)";
+    public function createPeminjaman($id_peminjam, $id_user, $tanggal_pinjam, $tanggal_rencana_kembali, $jenis_peminjaman, $keperluan, $id_alat, $jumlah, $status = 'menunggu') {
+        $kode_peminjaman = $this->generateKodePeminjaman();
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-        $stmt->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
-        $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
-        $stmt->bindParam(':tanggal_pinjam', $tanggal_pinjam);
-        $stmt->bindParam(':tanggal_kembali', $tanggal_kembali);
-        $stmt->bindParam(':status', $status);
-        $result = $stmt->execute();
+        $this->conn->beginTransaction();
+        try {
+            $query = "INSERT INTO " . $this->table_name . " 
+                      (kode_peminjaman, id_peminjam, id_user, tanggal_pinjam, tanggal_rencana_kembali, jenis_peminjaman, keperluan, status) 
+                      VALUES (:kode, :id_peminjam, :id_user, :tgl_pinjam, :tgl_rencana, :jenis, :keperluan, :status)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':kode', $kode_peminjaman);
+            $stmt->bindParam(':id_peminjam', $id_peminjam, PDO::PARAM_INT);
+            $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+            $stmt->bindParam(':tgl_pinjam', $tanggal_pinjam);
+            $stmt->bindParam(':tgl_rencana', $tanggal_rencana_kembali);
+            $stmt->bindParam(':jenis', $jenis_peminjaman);
+            $stmt->bindParam(':keperluan', $keperluan);
+            $stmt->bindParam(':status', $status);
+            $stmt->execute();
 
-        // Jika statusnya langsung 'dipinjam', kurangi stok alat
-        if ($result && $status === 'dipinjam') {
-            $this->reduceStock($id_alat, $jumlah);
+            $peminjamanId = $this->conn->lastInsertId();
+
+            $queryDetail = "INSERT INTO detail_peminjaman (id_peminjaman, id_alat, jumlah) 
+                            VALUES (:id_peminjaman, :id_alat, :jumlah)";
+            $stmtDetail = $this->conn->prepare($queryDetail);
+            $stmtDetail->bindParam(':id_peminjaman', $peminjamanId, PDO::PARAM_INT);
+            $stmtDetail->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
+            $stmtDetail->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
+            $stmtDetail->execute();
+
+            // Kurangi stok jika status disetujui atau dipinjam
+            if (in_array(strtolower($status), ['disetujui', 'dipinjam'])) {
+                $queryStock = "UPDATE alat SET jumlah = GREATEST(0, jumlah - :jumlah) WHERE id = :id_alat";
+                $stmtStock = $this->conn->prepare($queryStock);
+                $stmtStock->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
+                $stmtStock->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
+                $stmtStock->execute();
+            }
+
+            $this->conn->commit();
+            return $peminjamanId;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
         }
-
-        return $result ? (int)$this->conn->lastInsertId() : false;
     }
 
-    // Ubah data peminjaman
-    public function updatePeminjaman($id, $id_user, $id_alat, $jumlah, $tanggal_pinjam, $tanggal_kembali, $status) {
-        // Ambil data lama untuk kalkulasi stok
-        $oldData = $this->getPeminjamanById($id);
+    public function updatePeminjaman($id, $id_peminjam, $tanggal_pinjam, $tanggal_rencana_kembali, $jenis_peminjaman, $keperluan, $status, $id_alat = null, $jumlah = null) {
+        $this->conn->beginTransaction();
+        try {
+            $query = "UPDATE " . $this->table_name . " 
+                      SET id_peminjam = :id_peminjam, tanggal_pinjam = :tgl_pinjam, 
+                          tanggal_rencana_kembali = :tgl_rencana, jenis_peminjaman = :jenis, 
+                          keperluan = :keperluan, status = :status 
+                      WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id_peminjam', $id_peminjam, PDO::PARAM_INT);
+            $stmt->bindParam(':tgl_pinjam', $tanggal_pinjam);
+            $stmt->bindParam(':tgl_rencana', $tanggal_rencana_kembali);
+            $stmt->bindParam(':jenis', $jenis_peminjaman);
+            $stmt->bindParam(':keperluan', $keperluan);
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
 
-        $query = "UPDATE " . $this->table_name . " 
-                  SET id_user = :id_user, id_alat = :id_alat, jumlah = :jumlah,
-                      tanggal_pinjam = :tanggal_pinjam, tanggal_kembali = :tanggal_kembali, status = :status
-                  WHERE id_peminjaman = :id";
+            if ($id_alat !== null && $jumlah !== null) {
+                $queryDetail = "UPDATE detail_peminjaman 
+                                SET id_alat = :id_alat, jumlah = :jumlah 
+                                WHERE id_peminjaman = :id";
+                $stmtDetail = $this->conn->prepare($queryDetail);
+                $stmtDetail->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
+                $stmtDetail->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
+                $stmtDetail->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmtDetail->execute();
+            }
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-        $stmt->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
-        $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
-        $stmt->bindParam(':tanggal_pinjam', $tanggal_pinjam);
-        $stmt->bindParam(':tanggal_kembali', $tanggal_kembali);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $result = $stmt->execute();
-
-        if ($result && $oldData) {
-            // Jika berubah dari bukan 'dipinjam' ke 'dipinjam'
-            if ($oldData['status'] !== 'dipinjam' && $status === 'dipinjam') {
-                $this->reduceStock($id_alat, $jumlah);
-            }
-            // Jika berubah dari 'dipinjam' ke status lain ('dikembalikan', 'ditolak', dll)
-            elseif ($oldData['status'] === 'dipinjam' && $status !== 'dipinjam') {
-                $this->restoreStock($oldData['id_alat'], $oldData['jumlah']);
-            }
-            // Jika tetap 'dipinjam' tapi jumlah unit atau alat berubah
-            elseif ($oldData['status'] === 'dipinjam' && $status === 'dipinjam') {
-                if ($oldData['id_alat'] == $id_alat) {
-                    $selisih = $jumlah - $oldData['jumlah'];
-                    if ($selisih > 0) {
-                        $this->reduceStock($id_alat, $selisih);
-                    } elseif ($selisih < 0) {
-                        $this->restoreStock($id_alat, abs($selisih));
-                    }
-                } else {
-                    $this->restoreStock($oldData['id_alat'], $oldData['jumlah']);
-                    $this->reduceStock($id_alat, $jumlah);
-                }
-            }
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
         }
-
-        return $result;
     }
 
-    // Hapus data peminjaman
+    public function updateStatus($id, $status, $id_user = null) {
+        $current = $this->getPeminjamanById($id);
+        if (!$current) return false;
+
+        $this->conn->beginTransaction();
+        try {
+            $oldStatus = strtolower($current['status']);
+            $newStatus = strtolower($status);
+
+            $query = "UPDATE " . $this->table_name . " SET status = :status";
+            if ($id_user !== null) {
+                $query .= ", id_user = :id_user";
+            }
+            $query .= " WHERE id = :id";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':status', $status);
+            if ($id_user !== null) {
+                $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
+            }
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Atur stok berdasarkan transisi status
+            if (!in_array($oldStatus, ['disetujui', 'dipinjam']) && in_array($newStatus, ['disetujui', 'dipinjam'])) {
+                // Kurangi stok
+                $st = $this->conn->prepare("UPDATE alat SET jumlah = GREATEST(0, jumlah - :jml) WHERE id = :id_alat");
+                $st->bindParam(':jml', $current['jumlah'], PDO::PARAM_INT);
+                $st->bindParam(':id_alat', $current['id_alat'], PDO::PARAM_INT);
+                $st->execute();
+            } elseif (in_array($oldStatus, ['disetujui', 'dipinjam']) && in_array($newStatus, ['ditolak', 'dikembalikan', 'dibatalkan'])) {
+                // Kembalikan stok
+                $st = $this->conn->prepare("UPDATE alat SET jumlah = jumlah + :jml WHERE id = :id_alat");
+                $st->bindParam(':jml', $current['jumlah'], PDO::PARAM_INT);
+                $st->bindParam(':id_alat', $current['id_alat'], PDO::PARAM_INT);
+                $st->execute();
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
+        }
+    }
+
     public function deletePeminjaman($id) {
-        $oldData = $this->getPeminjamanById($id);
-        
-        $query = "DELETE FROM " . $this->table_name . " WHERE id_peminjaman = :id";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $result = $stmt->execute();
+        $current = $this->getPeminjamanById($id);
+        if (!$current) return false;
 
-        // Kembalikan stok jika data yang dihapus berstatus 'dipinjam'
-        if ($result && $oldData && $oldData['status'] === 'dipinjam') {
-            $this->restoreStock($oldData['id_alat'], $oldData['jumlah']);
+        $this->conn->beginTransaction();
+        try {
+            if (in_array(strtolower($current['status']), ['disetujui', 'dipinjam'])) {
+                $st = $this->conn->prepare("UPDATE alat SET jumlah = jumlah + :jml WHERE id = :id_alat");
+                $st->bindParam(':jml', $current['jumlah'], PDO::PARAM_INT);
+                $st->bindParam(':id_alat', $current['id_alat'], PDO::PARAM_INT);
+                $st->execute();
+            }
+
+            $delDetail = $this->conn->prepare("DELETE FROM detail_peminjaman WHERE id_peminjaman = :id");
+            $delDetail->bindParam(':id', $id, PDO::PARAM_INT);
+            $delDetail->execute();
+
+            $del = $this->conn->prepare("DELETE FROM " . $this->table_name . " WHERE id = :id");
+            $del->bindParam(':id', $id, PDO::PARAM_INT);
+            $del->execute();
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            throw $e;
         }
-
-        return $result;
     }
 
-    // Kurangi stok alat
-    private function reduceStock($id_alat, $jumlah) {
-        try {
-            $query = "UPDATE alat SET jumlah_stok = GREATEST(0, jumlah_stok - :jumlah) WHERE id_alat = :id_alat";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
-            $stmt->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
-            $stmt->execute();
-        } catch (Exception $e) {}
-    }
-
-    // Pulihkan stok alat
-    private function restoreStock($id_alat, $jumlah) {
-        try {
-            $query = "UPDATE alat SET jumlah_stok = jumlah_stok + :jumlah WHERE id_alat = :id_alat";
-            $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':jumlah', $jumlah, PDO::PARAM_INT);
-            $stmt->bindParam(':id_alat', $id_alat, PDO::PARAM_INT);
-            $stmt->execute();
-        } catch (Exception $e) {}
-    }
-
-    // Ambil riwayat peminjaman khusus milik satu user (Peminjam)
-    public function getPeminjamanByUser($id_user, $keyword = null) {
-        $query = "SELECT p.id_peminjaman, p.id_alat, p.jumlah, p.tanggal_pinjam, p.tanggal_kembali, p.status, p.created_at,
-                         a.nama_alat, a.harga_sewa, a.spesifikasi,
-                         k.nama_kategori,
-                         pb.id_pembayaran, pb.total_bayar, pb.metode_pembayaran, pb.status_pembayaran, pb.bukti_pembayaran, pb.tanggal_pembayaran
+    public function getActivePeminjaman() {
+        $query = "SELECT p.*, 
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan,
+                         dp.id_alat, dp.jumlah,
+                         a.nama_alat, a.kode as kode_alat
                   FROM " . $this->table_name . " p
-                  LEFT JOIN alat a ON p.id_alat = a.id_alat
-                  LEFT JOIN kategori k ON a.id_kategori = k.id_kategori
-                  LEFT JOIN pembayaran pb ON p.id_peminjaman = pb.id_peminjaman
-                  WHERE p.id_user = :id_user";
-
-        if (!empty($keyword)) {
-            $query .= " AND (a.nama_alat LIKE :keyword OR k.nama_kategori LIKE :keyword OR p.status LIKE :keyword)";
-        }
-
-        $query .= " ORDER BY p.id_peminjaman DESC";
-
+                  JOIN peminjam pm ON p.id_peminjam = pm.id
+                  JOIN detail_peminjaman dp ON dp.id_peminjaman = p.id
+                  JOIN alat a ON dp.id_alat = a.id
+                  WHERE p.status IN ('disetujui', 'dipinjam')
+                  ORDER BY p.id DESC";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-        if (!empty($keyword)) {
-            $kw = "%" . $keyword . "%";
-            $stmt->bindParam(':keyword', $kw);
-        }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Hitung total peminjaman user berdasarkan status tertentu
-    public function countUserPeminjamanByStatus($id_user, $status = null) {
-        try {
-            if ($status) {
-                $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE id_user = :id_user AND status = :status";
-                $stmt = $this->conn->prepare($query);
-                $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-                $stmt->bindParam(':status', $status);
-            } else {
-                $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE id_user = :id_user";
-                $stmt = $this->conn->prepare($query);
-                $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-            }
-            $stmt->execute();
-            return (int) $stmt->fetchColumn();
-        } catch (Exception $e) {
-            return 0;
-        }
-    }
-
-    // Batalkan pengajuan peminjaman oleh peminjam (hanya jika masih 'menunggu')
-    public function batalkanPeminjamanByUser($id_peminjaman, $id_user) {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id_peminjaman = :id AND id_user = :id_user AND status = 'menunggu'";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $id_peminjaman, PDO::PARAM_INT);
-        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
-        return $stmt->execute();
-    }
-
-    // Hitung total peminjaman aktif
-    public function countPeminjamanAktif() {
-        try {
-            $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE status IN ('menunggu', 'disetujui', 'dipinjam')";
-            return (int) $this->conn->query($query)->fetchColumn();
-        } catch (Exception $e) {
-            return 0;
-        }
     }
 }

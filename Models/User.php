@@ -1,65 +1,33 @@
 <?php
 
-require_once 'Models/Database.php';
+require_once __DIR__ . '/Database.php';
 
 class User {
     private $conn;
-    private $table_name = "users";
+    private $table_name = "user";
 
     public function __construct() {
         $database = new Database();
         $this->conn = $database->getConnection();
-        $this->ensureTableSchema();
+        $this->ensureSeedUsers();
     }
 
-    // Memastikan skema tabel tidak memotong hash password dan data user
-    public function ensureTableSchema() {
+    private function ensureSeedUsers() {
         try {
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN password VARCHAR(255) NOT NULL");
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'peminjam'");
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN Alamat TEXT NULL");
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN no_hp VARCHAR(30) NULL");
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN username VARCHAR(100) NOT NULL");
-            $this->conn->exec("ALTER TABLE " . $this->table_name . " MODIFY COLUMN nama_lengkap VARCHAR(150) NOT NULL");
-        } catch (Exception $e) {
-            // Abaikan jika alter gagal atau sudah sesuai
-        }
-
-        // Siapkan akun admin dan akun peminjam demo jika belum ada
-        try {
-            // 1. Akun Admin Default
-            $stmt = $this->conn->prepare("SELECT id_users, password FROM " . $this->table_name . " WHERE LOWER(username) = 'admin' LIMIT 1");
-            $stmt->execute();
-            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$admin) {
-                $this->register('Alya Rahma', 'admin', 'admin123', 'admin', 'Jl. Studio No. 1, Jakarta', '081234567890');
-            } else {
-                // Perbaiki jika password admin sebelumnya corrupt/terpotong
-                if (!password_verify('admin123', $admin['password']) && $admin['password'] !== 'admin123' && $admin['password'] !== md5('admin123')) {
-                    $newHash = password_hash('admin123', PASSWORD_DEFAULT);
-                    $upd = $this->conn->prepare("UPDATE " . $this->table_name . " SET password = :p WHERE id_users = :id");
-                    $upd->execute([':p' => $newHash, ':id' => $admin['id_users']]);
-                }
-            }
-
-            // 2. Akun Peminjam Demo
-            $stmtP = $this->conn->prepare("SELECT id_users, password FROM " . $this->table_name . " WHERE LOWER(username) = 'peminjam' LIMIT 1");
-            $stmtP->execute();
-            $peminjam = $stmtP->fetch(PDO::FETCH_ASSOC);
-            if (!$peminjam) {
-                $this->register('Peminjam Demo', 'peminjam', 'peminjam123', 'peminjam', 'Jl. Siswa No. 10, Jakarta', '089876543210');
-            } else {
-                // Perbaiki jika password peminjam sebelumnya corrupt/terpotong
-                if (!password_verify('peminjam123', $peminjam['password']) && $peminjam['password'] !== 'peminjam123' && $peminjam['password'] !== md5('peminjam123')) {
-                    $newHash = password_hash('peminjam123', PASSWORD_DEFAULT);
-                    $upd = $this->conn->prepare("UPDATE " . $this->table_name . " SET password = :p WHERE id_users = :id");
-                    $upd->execute([':p' => $newHash, ':id' => $peminjam['id_users']]);
-                }
+            $stmt = $this->conn->query("SELECT COUNT(*) as cnt FROM " . $this->table_name);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($row['cnt'] == 0) {
+                $hash = password_hash('password123', PASSWORD_BCRYPT);
+                $initSql = "INSERT INTO " . $this->table_name . " (`nama`, `username`, `password`, `role`) VALUES
+                    ('Admin Pengelola Lab', 'pengelola', '$hash', 'pengelola'),
+                    ('Ketua Jurusan RPL', 'kejur', '$hash', 'admin'),
+                    ('Petugas Laboran Lab Komputer', 'petugas', '$hash', 'petugas'),
+                    ('Siswa Peminjam Lab', 'siswa', '$hash', 'peminjam')";
+                $this->conn->exec($initSql);
             }
         } catch (Exception $e) {}
     }
 
-    // Mengambil user berdasarkan username (case-insensitive)
     public function getUserByUsername($username) {
         $query = "SELECT * FROM " . $this->table_name . " WHERE LOWER(username) = LOWER(:username) LIMIT 1";
         $stmt = $this->conn->prepare($query);
@@ -68,206 +36,106 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Mengambil user berdasarkan ID
-    public function getUserById($id_users) {
-        $query = "SELECT id_users, username, nama_lengkap, Alamat, no_hp, role FROM " . $this->table_name . " WHERE id_users = :id_users LIMIT 1";
+    public function getUserById($id_user) {
+        $query = "SELECT id_user, nama, username, role FROM " . $this->table_name . " WHERE id_user = :id_user LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Mengambil semua user dengan pencarian
     public function getAllUsers($keyword = null) {
-        $query = "SELECT id_users, username, nama_lengkap, Alamat, no_hp, role FROM " . $this->table_name;
+        $query = "SELECT * FROM " . $this->table_name;
         if (!empty($keyword)) {
-            $query .= " WHERE username LIKE :keyword OR nama_lengkap LIKE :keyword OR no_hp LIKE :keyword OR role LIKE :keyword";
+            $query .= " WHERE nama LIKE :keyword OR username LIKE :keyword OR role LIKE :keyword";
         }
-        $query .= " ORDER BY id_users DESC";
+        $query .= " ORDER BY id_user DESC";
 
         $stmt = $this->conn->prepare($query);
         if (!empty($keyword)) {
-            $kw = "%" . $keyword . "%";
-            $stmt->bindParam(':keyword', $kw);
+            $searchTerm = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $searchTerm);
         }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Cek apakah username sudah ada (opsional mengecualikan ID tertentu untuk update)
-    public function isUsernameExists($username, $excludeId = null) {
-        $query = "SELECT id_users FROM " . $this->table_name . " WHERE username = :username";
-        if ($excludeId !== null) {
-            $query .= " AND id_users != :exclude_id";
-        }
-        $query .= " LIMIT 1";
-
+    public function countUsers() {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':username', $username);
-        if ($excludeId !== null) {
-            $stmt->bindParam(':exclude_id', $excludeId, PDO::PARAM_INT);
-        }
         $stmt->execute();
-        return $stmt->rowCount() > 0;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['total'] ?? 0);
     }
 
-    // Registrasi / Tambah user baru
-    public function register($nama_lengkap, $username, $password, $role = 'peminjam', $alamat = '', $no_hp = '') {
-        $query = "INSERT INTO " . $this->table_name . " (nama_lengkap, username, password, role, Alamat, no_hp) 
-                  VALUES (:nama_lengkap, :username, :password, :role, :alamat, :no_hp)";
+    public function createUser($nama, $username, $password, $role) {
+        $query = "INSERT INTO " . $this->table_name . " (nama, username, password, role) 
+                  VALUES (:nama, :username, :password, :role)";
         $stmt = $this->conn->prepare($query);
-
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        try {
-            $stmt->bindParam(':nama_lengkap', $nama_lengkap);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->bindParam(':role', $role);
-            $stmt->bindParam(':alamat', $alamat);
-            $stmt->bindParam(':no_hp', $no_hp);
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            if (strpos($e->getMessage(), '22001') !== false || strpos($e->getMessage(), 'Data too long') !== false) {
-                $md5Pass = md5($password);
-                $stmt = $this->conn->prepare($query);
-                $stmt->bindParam(':nama_lengkap', $nama_lengkap);
-                $stmt->bindParam(':username', $username);
-                $stmt->bindParam(':password', $md5Pass);
-                $stmt->bindParam(':role', $role);
-                $stmt->bindParam(':alamat', $alamat);
-                $stmt->bindParam(':no_hp', $no_hp);
-                return $stmt->execute();
-            }
-            throw $e;
-        }
+        $hashed = password_hash($password, PASSWORD_BCRYPT);
+        $stmt->bindParam(':nama', $nama);
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':password', $hashed);
+        $stmt->bindParam(':role', $role);
+        return $stmt->execute();
     }
 
-    // Update user
-    public function updateUser($id_users, $nama_lengkap, $username, $role, $password = null, $alamat = null, $no_hp = null) {
+    public function updateUser($id_user, $nama, $username, $role, $password = null) {
         if (!empty($password)) {
             $query = "UPDATE " . $this->table_name . " 
-                      SET nama_lengkap = :nama_lengkap, username = :username, password = :password, role = :role";
-            if ($alamat !== null) $query .= ", Alamat = :alamat";
-            if ($no_hp !== null) $query .= ", no_hp = :no_hp";
-            $query .= " WHERE id_users = :id_users";
-
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                      SET nama = :nama, username = :username, role = :role, password = :password 
+                      WHERE id_user = :id_user";
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':nama_lengkap', $nama_lengkap);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->bindParam(':role', $role);
-            if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
-            if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
-            $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
-
-            try {
-                return $stmt->execute();
-            } catch (PDOException $e) {
-                if (strpos($e->getMessage(), '22001') !== false || strpos($e->getMessage(), 'Data too long') !== false) {
-                    $md5Pass = md5($password);
-                    $stmt = $this->conn->prepare($query);
-                    $stmt->bindParam(':nama_lengkap', $nama_lengkap);
-                    $stmt->bindParam(':username', $username);
-                    $stmt->bindParam(':password', $md5Pass);
-                    $stmt->bindParam(':role', $role);
-                    if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
-                    if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
-                    $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
-                    return $stmt->execute();
-                }
-                throw $e;
-            }
+            $hashed = password_hash($password, PASSWORD_BCRYPT);
+            $stmt->bindParam(':password', $hashed);
         } else {
             $query = "UPDATE " . $this->table_name . " 
-                      SET nama_lengkap = :nama_lengkap, username = :username, role = :role";
-            if ($alamat !== null) $query .= ", Alamat = :alamat";
-            if ($no_hp !== null) $query .= ", no_hp = :no_hp";
-            $query .= " WHERE id_users = :id_users";
-
+                      SET nama = :nama, username = :username, role = :role 
+                      WHERE id_user = :id_user";
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':nama_lengkap', $nama_lengkap);
-            $stmt->bindParam(':username', $username);
-            $stmt->bindParam(':role', $role);
-            if ($alamat !== null) $stmt->bindParam(':alamat', $alamat);
-            if ($no_hp !== null) $stmt->bindParam(':no_hp', $no_hp);
-            $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
-            return $stmt->execute();
         }
-    }
 
-    // Update password hash saja (misal untuk rehash atau sinkronisasi)
-    public function updatePasswordOnly($id_users, $hashedPassword) {
-        $query = "UPDATE " . $this->table_name . " SET password = :password WHERE id_users = :id_users";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':password', $hashedPassword);
-        $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
+        $stmt->bindParam(':nama', $nama);
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':role', $role);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
-    // Hapus user
-    public function deleteUser($id_users) {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id_users = :id_users";
+    public function deleteUser($id_user) {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id_user = :id_user";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id_users', $id_users, PDO::PARAM_INT);
+        $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
-    // Catat log aktivitas user ke tabel log_aktivitas
-    public function recordLog($userId, $aktivitas) {
+    public function recordLog($id_user, $aktivitas, $deskripsi = '') {
         try {
-            $query = "INSERT INTO log_aktivitas (id_user, aktivitas) VALUES (:user_id, :aktivitas)";
+            $query = "INSERT INTO log_aktivitas (id_user, aktivitas, deskripsi, waktu) 
+                      VALUES (:id_user, :aktivitas, :deskripsi, NOW())";
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
             $stmt->bindParam(':aktivitas', $aktivitas);
+            $stmt->bindParam(':deskripsi', $deskripsi);
             $stmt->execute();
-        } catch (Exception $e) {
-            // Abaikan error log agar tidak mengganggu transaksi
-        }
+        } catch (Exception $e) {}
     }
 
-    // Ambil seluruh data log aktivitas
-    public function getLogs($keyword = null) {
-        $query = "SELECT l.*, u.username, u.nama_lengkap, u.role, DATE_FORMAT(l.waktu, '%d %b %Y %H:%i') as waktu_format 
+    public function getAllLogs($keyword = null) {
+        $query = "SELECT l.*, u.nama as nama_user, u.username, u.role 
                   FROM log_aktivitas l 
-                  LEFT JOIN users u ON l.id_user = u.id_users";
-
+                  LEFT JOIN " . $this->table_name . " u ON l.id_user = u.id_user";
         if (!empty($keyword)) {
-            $query .= " WHERE l.aktivitas LIKE :keyword OR u.username LIKE :keyword OR u.nama_lengkap LIKE :keyword";
+            $query .= " WHERE l.aktivitas LIKE :keyword OR l.deskripsi LIKE :keyword OR u.nama LIKE :keyword OR u.username LIKE :keyword";
         }
-
-        $query .= " ORDER BY l.id_log_aktifitas DESC";
+        $query .= " ORDER BY l.id DESC LIMIT 100";
 
         $stmt = $this->conn->prepare($query);
         if (!empty($keyword)) {
-            $kw = "%" . $keyword . "%";
-            $stmt->bindParam(':keyword', $kw);
+            $searchTerm = "%" . $keyword . "%";
+            $stmt->bindParam(':keyword', $searchTerm);
         }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Hitung total pengguna
-    public function countUsers() {
-        try {
-            $query = "SELECT COUNT(*) FROM " . $this->table_name;
-            return (int) $this->conn->query($query)->fetchColumn();
-        } catch (Exception $e) {
-            return 0;
-        }
-    }
-
-    // Buat akun admin default jika belum ada di database
-    public function createDefaultAdminIfNone() {
-        try {
-            $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE role = 'admin'";
-            $count = (int) $this->conn->query($query)->fetchColumn();
-            if ($count === 0) {
-                $this->register('Alya Rahma', 'admin', 'admin123', 'admin');
-            }
-        } catch (Exception $e) {
-            // Database belum siap
-        }
     }
 }

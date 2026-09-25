@@ -1,18 +1,18 @@
 <?php
 $activePage = 'dashboard';
-$pageTitle = 'Pusat Kendali - Ruang Admin SEWANADA';
-require_once 'Views/admin_header.php';
+$pageTitle = 'Pusat Kendali - Pengelola Lab Komputer';
+require_once __DIR__ . '/admin_header.php';
 ?>
 
 <!-- HEADER ROW -->
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label"><?= htmlspecialchars($tglStr) ?></span>
-        <h1 class="admin-title">Pusat kendali.</h1>
-        <p class="admin-subtitle">Pantau kesehatan inventaris dan aktivitas peminjaman hari ini.</p>
+        <h1 class="admin-title">Pusat Kendali Lab.</h1>
+        <p class="admin-subtitle">Pantau kesehatan inventaris alat lab komputer dan aktivitas peminjaman hari ini.</p>
     </div>
     <a href="index.php?c=admin&a=alat" class="btn-add-instrument">
-        + Tambah alat
+        + Tambah Alat Lab
     </a>
 </div>
 
@@ -20,20 +20,22 @@ require_once 'Views/admin_header.php';
 <div class="admin-metrics-grid">
     <div class="metric-card">
         <div class="metric-top-row">
-            <span class="metric-label">Total alat</span>
+            <span class="metric-label">Total Jenis Alat</span>
             <div class="metric-icon-wrap">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
                 </svg>
             </div>
         </div>
         <div class="metric-number"><?= $stats['total_alat'] ?></div>
-        <div class="metric-sub"><?= $stats['total_kategori'] ?> kategori</div>
+        <div class="metric-sub"><?= $stats['total_kategori'] ?> kategori lab</div>
     </div>
 
     <div class="metric-card">
         <div class="metric-top-row">
-            <span class="metric-label">Sedang dipinjam</span>
+            <span class="metric-label">Sedang Dipinjam</span>
             <div class="metric-icon-wrap">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -42,12 +44,12 @@ require_once 'Views/admin_header.php';
             </div>
         </div>
         <div class="metric-number"><?= $stats['sedang_dipinjam'] ?></div>
-        <div class="metric-sub">Aktif dipinjam</div>
+        <div class="metric-sub">Peminjaman aktif</div>
     </div>
 
     <div class="metric-card">
         <div class="metric-top-row">
-            <span class="metric-label">Pengguna aktif</span>
+            <span class="metric-label">Pengguna Terdaftar</span>
             <div class="metric-icon-wrap">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -56,20 +58,21 @@ require_once 'Views/admin_header.php';
             </div>
         </div>
         <div class="metric-number"><?= $totalPengguna ?></div>
-        <div class="metric-sub">Terdaftar di sistem</div>
+        <div class="metric-sub">Akun dalam sistem</div>
     </div>
 
     <div class="metric-card">
         <div class="metric-top-row">
-            <span class="metric-label">Menunggu persetujuan</span>
+            <span class="metric-label">Menunggu Persetujuan</span>
             <div class="metric-icon-wrap">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
             </div>
         </div>
         <div class="metric-number"><?= sprintf('%02d', $stats['menunggu_persetujuan']) ?></div>
-        <div class="metric-sub">Perlu ditinjau</div>
+        <div class="metric-sub">Permohonan baru</div>
     </div>
 </div>
 
@@ -77,8 +80,8 @@ require_once 'Views/admin_header.php';
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Inventaris alat</h3>
-            <p class="inventory-sub">Daftar alat terakhir diperbarui hari ini.</p>
+            <h3 class="inventory-title">Inventaris Alat Lab Komputer</h3>
+            <p class="inventory-sub">Daftar alat dan ketersediaan stok di laboratorium.</p>
         </div>
         <form method="GET" action="index.php" class="search-box">
             <input type="hidden" name="c" value="admin">
@@ -89,43 +92,52 @@ require_once 'Views/admin_header.php';
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="text" name="search" placeholder="Cari alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+            <input type="text" name="search" placeholder="Cari nama atau kode alat..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
         </form>
     </div>
 
     <table class="inventory-table">
         <thead>
             <tr>
+                <th>No</th>
+                <th>Kode</th>
                 <th>Nama Alat</th>
                 <th>Kategori</th>
-                <th>Terakhir Dicek</th>
+                <th>Stok</th>
+                <th>Kondisi</th>
                 <th>Status</th>
-                <th style="text-align: right;">Aksi</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($inventaris as $item): 
-                $isReady = ($item['jumlah_stok'] > 0);
-                $tglCek = $item['tgl_cek'] ?? date('d M Y');
-            ?>
+            <?php if (empty($inventaris)): ?>
                 <tr>
-                    <td class="col-instrument-name"><?= htmlspecialchars($item['nama_alat']) ?></td>
-                    <td><?= htmlspecialchars($item['nama_kategori'] ?? 'Instrumen') ?></td>
-                    <td><?= htmlspecialchars($tglCek) ?></td>
-                    <td>
-                        <?php if ($isReady): ?>
-                            <span class="status-badge badge-ready">Siap</span>
-                        <?php else: ?>
-                            <span class="status-badge badge-busy">Dipinjam</span>
-                        <?php endif; ?>
-                    </td>
-                    <td class="col-detail-link">
-                        <a href="index.php?c=admin&a=alat" class="btn-table-detail">Kelola</a>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Belum ada data inventaris alat lab.
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php else: ?>
+                <?php $no = 1; foreach ($inventaris as $item): 
+                    $isAvailable = ($item['jumlah'] > 0);
+                ?>
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td><span style="font-family: monospace; font-size: 12px; font-weight: 700; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;"><?= htmlspecialchars($item['kode'] ?? '-') ?></span></td>
+                        <td class="col-instrument-name"><?= htmlspecialchars($item['nama_alat']) ?></td>
+                        <td><?= htmlspecialchars($item['nama_kategori'] ?? 'Umum') ?></td>
+                        <td><strong><?= (int)$item['jumlah'] ?></strong> unit</td>
+                        <td><span style="padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #e0f2fe; color: #0369a1;"><?= htmlspecialchars($item['kondisi'] ?? 'Baik') ?></span></td>
+                        <td>
+                            <?php if ($isAvailable): ?>
+                                <span class="status-badge badge-ready">Tersedia</span>
+                            <?php else: ?>
+                                <span class="status-badge badge-busy">Habis Dipinjam</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 </section>
 
-<?php require_once 'Views/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/admin_footer.php'; ?>
