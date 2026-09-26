@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAB KOMPUTER - Sistem Peminjaman Alat Laboratorium Komputer</title>
+    <title>LAB KOMPUTER - Sistem Peminjaman Alat Laboratorium Komputer RPL</title>
     <link rel="stylesheet" href="Assets/css/style.css">
 </head>
 <body>
@@ -48,13 +48,13 @@
         <!-- HERO CONTENT -->
         <section class="hero-container">
             <div class="hero-text-col">
-                <div class="hero-tag">SISTEM PEMINJAMAN ALAT LAB KOMPUTER</div>
+                <div class="hero-tag">SISTEM PEMINJAMAN ALAT LAB KOMPUTER RPL</div>
                 <h1 class="hero-main-title">
                     Praktikum lancar,<br>
                     <span class="text-teal">alat selalu siap.</span>
                 </h1>
                 <p class="hero-lead-text">
-                    Platform resmi peminjaman inventaris alat lab komputer untuk siswa dan pengajar. Mulai dari perangkat jaringan, PC workstation, tools pengkabelan LAN, proyektor, hingga modul mikrokontroler IoT.
+                    Platform resmi peminjaman alat laboratorium komputer RPL untuk siswa dan pengajar. Memudahkan proses peminjaman laptop dan berbagai perangkat untuk kebutuhan pembelajaran.
                 </p>
 
                 <div class="hero-actions">
@@ -248,7 +248,7 @@
                         </div>
                         <span class="brand-title">LAB KOMPUTER</span>
                     </a>
-                    <p class="footer-desc">Sistem Informasi Inventaris & Peminjaman Alat Laboratorium Komputer.</p>
+                    <p class="footer-desc">Sistem Informasi Inventaris & Peminjaman Alat Laboratorium Komputer RPL.</p>
                 </div>
 
                 <ul class="footer-nav">
