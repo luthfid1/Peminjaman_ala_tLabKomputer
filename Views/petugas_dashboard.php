@@ -7,77 +7,101 @@ require_once __DIR__ . '/petugas_header.php';
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label"><?= htmlspecialchars($tglStr) ?></span>
-        <h1 class="admin-title">Pusat Kendali Petugas Lab</h1>
-        <p class="admin-subtitle">Verifikasi pengajuan peminjaman alat, monitoring pengembalian, dan pastikan kelancaran sirkulasi perangkat laboratorium.</p>
+        <h1 class="admin-title">Dashboard Petugas Laboran</h1>
+        <p class="admin-subtitle">Akses operasional laboran untuk menyetujui peminjaman, memantau pengembalian alat, dan mencetak laporan sirkulasi.</p>
     </div>
     <div style="display: flex; gap: 10px;">
+        <a href="index.php?c=petugas&a=laporan" class="btn-action-edit" style="text-decoration: none; padding: 10px 16px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            🖨 Cetak Laporan
+        </a>
         <a href="index.php?c=petugas&a=pengembalian" class="btn-add-instrument">
             + Catat Pengembalian
         </a>
     </div>
 </div>
 
-<!-- 4 METRIC CARDS -->
-<div class="admin-metrics-grid">
-    <div class="metric-card">
-        <div class="metric-top-row">
-            <span class="metric-label">Menunggu Persetujuan</span>
-            <div class="metric-icon-wrap" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
+<!-- 3 KARTU USE CASE PETUGAS -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 28px;">
+    <!-- USE CASE 1: MENYETUJUI PEMINJAMAN -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid #f59e0b;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span style="font-size: 11px; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 01</span>
+                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
             </div>
+            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Menyetujui Peminjaman</h3>
+            <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Verifikasi dan beri persetujuan permohonan pinjam alat lab dari siswa.</p>
         </div>
-        <div class="metric-number"><?= $totalMenunggu ?></div>
-        <div class="metric-sub" style="color: #b45309;">Perlu diverifikasi segera</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+            <div>
+                <span style="font-size: 26px; font-weight: 800; color: #d97706;"><?= $totalMenunggu ?></span>
+                <span style="font-size: 12px; color: var(--text-muted); display: block;">Permohonan menunggu</span>
+            </div>
+            <a href="index.php?c=petugas&a=peminjaman" class="btn-action-edit" style="font-size: 12px; text-decoration: none; padding: 6px 12px;">
+                Proses Sekarang &rarr;
+            </a>
+        </div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-top-row">
-            <span class="metric-label">Sedang Dipinjam</span>
-            <div class="metric-icon-wrap">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
+    <!-- USE CASE 2: MEMANTAU PENGEMBALIAN -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary-teal);">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--teal-dark); text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 02</span>
+                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(20, 184, 166, 0.12); color: var(--teal-dark); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                </div>
             </div>
+            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Memantau Pengembalian</h3>
+            <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Pantau tenggat waktu, catat pengembalian alat, denda, dan verifikasi kondisi fisik.</p>
         </div>
-        <div class="metric-number"><?= $totalAktif ?></div>
-        <div class="metric-sub">Peminjaman aktif berjalan</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+            <div>
+                <span style="font-size: 26px; font-weight: 800; color: var(--primary-navy);"><?= $totalAktif ?></span>
+                <span style="font-size: 12px; color: var(--text-muted); display: block;">Perangkat aktif di luar lab</span>
+            </div>
+            <a href="index.php?c=petugas&a=pengembalian" class="btn-action-edit" style="font-size: 12px; text-decoration: none; padding: 6px 12px;">
+                Pantau & Catat &rarr;
+            </a>
+        </div>
     </div>
 
-    <div class="metric-card">
-        <div class="metric-top-row">
-            <span class="metric-label">Total Pengembalian</span>
-            <div class="metric-icon-wrap">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <polyline points="9 11 12 14 22 4"></polyline>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                </svg>
+    <!-- USE CASE 3: MENCETAK LAPORAN -->
+    <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid #0284c7;">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span style="font-size: 11px; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 03</span>
+                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(2, 132, 199, 0.12); color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                </div>
             </div>
+            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Mencetak Laporan</h3>
+            <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Cetak arsip fisik berkas sirkulasi peminjaman & pengembalian laboratorium.</p>
         </div>
-        <div class="metric-number"><?= $totalPengembalian ?></div>
-        <div class="metric-sub">Transaksi selesai</div>
-    </div>
-
-    <div class="metric-card">
-        <div class="metric-top-row">
-            <span class="metric-label">Total Alat Lab</span>
-            <div class="metric-icon-wrap">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                    <line x1="8" y1="21" x2="16" y2="21"></line>
-                    <line x1="12" y1="17" x2="12" y2="21"></line>
-                </svg>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+            <div>
+                <span style="font-size: 26px; font-weight: 800; color: #0284c7;"><?= $totalPengembalian ?></span>
+                <span style="font-size: 12px; color: var(--text-muted); display: block;">Total arsip transaksi selesai</span>
             </div>
+            <a href="index.php?c=petugas&a=laporan" class="btn-action-edit" style="font-size: 12px; text-decoration: none; padding: 6px 12px;">
+                Buka & Cetak &rarr;
+            </a>
         </div>
-        <div class="metric-number"><?= $totalAlat ?></div>
-        <div class="metric-sub">Item inventaris lab</div>
     </div>
 </div>
 
-<!-- SECTION: PERMOHONAN MENUNGGU PERSETUJUAN -->
+<!-- SECTION 1: PERMOHONAN MENUNGGU PERSETUJUAN -->
 <section class="inventory-section-card" style="margin-bottom: 24px;">
     <div class="inventory-header">
         <div>
@@ -87,7 +111,7 @@ require_once __DIR__ . '/petugas_header.php';
                     <?= count($permohonanMenunggu) ?>
                 </span>
             </h3>
-            <p class="inventory-sub">Pengajuan peminjaman dari siswa yang memerlukan konfirmasi petugas laboran.</p>
+            <p class="inventory-sub">Pengajuan pinjam yang membutuhkan verifikasi dan persetujuan langsung dari petugas laboran.</p>
         </div>
         <a href="index.php?c=petugas&a=peminjaman" style="font-size: 13px; font-weight: 600; color: var(--teal-dark); text-decoration: none;">
             Kelola Semua &rarr;
@@ -97,20 +121,20 @@ require_once __DIR__ . '/petugas_header.php';
     <table class="inventory-table">
         <thead>
             <tr>
-                <th>No</th>
+                <th style="width: 40px;">No</th>
                 <th>Kode & Siswa</th>
                 <th>Alat Lab Diminta</th>
-                <th>Keperluan</th>
+                <th>Keperluan / Jenis</th>
                 <th>Waktu Pinjam</th>
                 <th>Rencana Kembali</th>
-                <th style="text-align: right;">Aksi Petugas</th>
+                <th style="text-align: right;">Aksi Persetujuan</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($permohonanMenunggu)): ?>
                 <tr>
                     <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Tidak ada permohonan pinjam baru yang menunggu persetujuan saat ini.
+                        Saat ini tidak ada permohonan pinjam baru yang menunggu persetujuan.
                     </td>
                 </tr>
             <?php else: ?>
@@ -123,7 +147,7 @@ require_once __DIR__ . '/petugas_header.php';
                             <div style="font-size: 11px; color: var(--text-muted);">NIS: <?= htmlspecialchars($p['nis'] ?? '-') ?> &bull; <?= htmlspecialchars($p['kelas'] ?? '') ?></div>
                         </td>
                         <td class="col-instrument-name">
-                            <?= htmlspecialchars($p['nama_alat'] ?? 'Alat Lab') ?>
+                            <strong><?= htmlspecialchars($p['nama_alat'] ?? 'Alat Lab') ?></strong>
                             <div style="font-size: 11px; color: var(--text-muted);"><?= (int)($p['jumlah'] ?? 1) ?> unit &bull; <?= htmlspecialchars($p['nama_kategori'] ?? '') ?></div>
                         </td>
                         <td>
@@ -134,10 +158,10 @@ require_once __DIR__ . '/petugas_header.php';
                             <strong style="color: var(--teal-dark);"><?= !empty($p['waktu_rencana_kembali']) ? date('H:i', strtotime($p['waktu_rencana_kembali'])) . ' WIB' : '-' ?></strong>
                         </td>
                         <td class="table-actions-cell">
-                            <a href="index.php?c=petugas&a=setujui_peminjaman&id=<?= $p['id'] ?>" class="btn-action-edit" style="background: #10b981; color: white;" onclick="return confirm('Setujui permohonan peminjaman alat ini?')">
+                            <a href="index.php?c=petugas&a=setujui_peminjaman&id=<?= $p['id'] ?>" class="btn-action-edit" style="background: #10b981; color: white;" onclick="return confirm('Setujui permohonan pinjam ini?')">
                                 ✓ Setujui
                             </a>
-                            <a href="index.php?c=petugas&a=tolak_peminjaman&id=<?= $p['id'] ?>" class="btn-action-delete" onclick="return confirm('Tolak permohonan peminjaman alat ini?')">
+                            <a href="index.php?c=petugas&a=tolak_peminjaman&id=<?= $p['id'] ?>" class="btn-action-delete" onclick="return confirm('Tolak permohonan pinjam ini?')">
                                 ✕ Tolak
                             </a>
                         </td>
@@ -148,35 +172,36 @@ require_once __DIR__ . '/petugas_header.php';
     </table>
 </section>
 
-<!-- SECTION: ALAT SEDANG DIPINJAM -->
+<!-- SECTION 2: PEMANTAUAN PENGEMBALIAN & PEMINJAMAN AKTIF -->
 <section class="inventory-section-card">
     <div class="inventory-header">
         <div>
-            <h3 class="inventory-title">Alat Lab Sedang Dipinjam Aktif</h3>
-            <p class="inventory-sub">Daftar perangkat yang saat ini berada di luar ruang laboratorium komputer.</p>
+            <h3 class="inventory-title">Pemantauan Pengembalian Alat Lab</h3>
+            <p class="inventory-sub">Daftar perangkat yang sedang dipinjam siswa dan harus dipantau pengembaliannya.</p>
         </div>
         <a href="index.php?c=petugas&a=pengembalian" class="btn-action-edit" style="font-size: 12px; text-decoration: none;">
-            Proses Pengembalian
+            + Catat Pengembalian
         </a>
     </div>
 
     <table class="inventory-table">
         <thead>
             <tr>
-                <th>No</th>
+                <th style="width: 40px;">No</th>
                 <th>Kode & Siswa</th>
                 <th>Alat Lab</th>
                 <th>Jml</th>
                 <th>Waktu Pinjam</th>
                 <th>Tenggat Rencana</th>
                 <th>Status</th>
+                <th style="text-align: right;">Aksi</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($peminjamanAktif)): ?>
                 <tr>
-                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                        Tidak ada alat yang sedang dipinjam saat ini. Semua perangkat aman di laboratorium.
+                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        Tidak ada alat yang sedang dipinjam saat ini. Semua alat berada di laboratorium.
                     </td>
                 </tr>
             <?php else: ?>
@@ -204,13 +229,18 @@ require_once __DIR__ . '/petugas_header.php';
                                     <span style="display:block; font-size:11px; font-weight:400;">⚠ Terlewat</span>
                                 </span>
                             <?php else: ?>
-                                <?= $wktKembali ?>
+                                <strong style="color: var(--teal-dark);"><?= $wktKembali ?></strong>
                             <?php endif; ?>
                         </td>
                         <td>
                             <span class="status-badge badge-ready">
                                 <?= ucfirst(htmlspecialchars($pa['status'])) ?>
                             </span>
+                        </td>
+                        <td class="table-actions-cell">
+                            <a href="index.php?c=petugas&a=pengembalian" class="btn-action-edit" style="font-size: 12px; text-decoration: none;">
+                                Proses Kembali
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

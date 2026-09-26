@@ -116,6 +116,32 @@ switch ($controller) {
         }
         break;
 
+    case 'kejur':
+        require_once __DIR__ . '/controllers/kejurcontroller.php';
+        $kejur = new KejurController();
+
+        switch ($action) {
+            case 'dashboard':
+                $kejur->dashboard();
+                break;
+            case 'laporan_peminjam':
+                $kejur->laporan_peminjam();
+                break;
+            case 'laporan_alat':
+                $kejur->laporan_alat();
+                break;
+            case 'laporan_peminjaman':
+                $kejur->laporan_peminjaman();
+                break;
+            case 'laporan_pengembalian':
+                $kejur->laporan_pengembalian();
+                break;
+            default:
+                $kejur->dashboard();
+                break;
+        }
+        break;
+
     case 'petugas':
         require_once __DIR__ . '/controllers/petugascontroller.php';
         $petugas = new PetugasController();

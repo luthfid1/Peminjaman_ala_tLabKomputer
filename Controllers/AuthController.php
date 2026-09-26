@@ -164,8 +164,11 @@ class AuthController {
 
     private function redirectByRole($role) {
         $role = strtolower(trim($role ?? ''));
-        if ($role === 'pengelola' || $role === 'admin') {
+        if ($role === 'pengelola') {
             header('Location: index.php?c=admin&a=dashboard');
+            exit;
+        } elseif ($role === 'admin') {
+            header('Location: index.php?c=kejur&a=dashboard');
             exit;
         } elseif ($role === 'petugas') {
             header('Location: index.php?c=petugas&a=dashboard');
