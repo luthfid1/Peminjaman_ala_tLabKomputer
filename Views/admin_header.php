@@ -57,7 +57,7 @@
             <div class="sidebar-mode-card">
                 <span class="mode-tag">MODE AKTIF</span>
                 <h2 class="mode-title">Pengelola Lab</h2>
-                <p class="mode-desc">Akses penuh CRUD alat & manajemen peminjaman lab komputer.</p>
+                <p class="mode-desc">Akses penuh CRUD alat & manajemen peminjaman lab komputer RPL.</p>
             </div>
 
             <ul class="admin-sidebar-menu">
