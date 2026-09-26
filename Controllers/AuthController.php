@@ -107,39 +107,67 @@ class AuthController {
                 $error = 'Username "' . htmlspecialchars($username) . '" sudah digunakan. Silakan pilih username lain!';
             } else {
                 try {
-                    // Upload foto kartu pelajar jika diunggah
+                    // Upload foto jaminan (kartu pelajar / identitas)
                     $foto_kartu = '';
-                    if (isset($_FILES['foto_kartu_pelajar']) && $_FILES['foto_kartu_pelajar']['error'] === UPLOAD_ERR_OK) {
-                        $fileTmp  = $_FILES['foto_kartu_pelajar']['tmp_name'];
-                        $fileName = $_FILES['foto_kartu_pelajar']['name'];
+                    $fileData = $_FILES['foto_kartu_pelajar'] ?? $_FILES['foto'] ?? null;
+                    if (!$fileData || empty($fileData['tmp_name']) || $fileData['error'] !== UPLOAD_ERR_OK) {
+                        $error = 'Foto jaminan (kartu pelajar/identitas) wajib diunggah!';
+                    } else {
+                        $fileTmp  = $fileData['tmp_name'];
+                        $fileName = $fileData['name'];
                         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                         $allowed = ['jpg', 'jpeg', 'png', 'webp'];
 
-                        if (in_array($ext, $allowed)) {
-                            $newFileName = 'kartu_' . time() . '_' . rand(100, 999) . '.' . $ext;
-                            $uploadDir = __DIR__ . '/../Assets/uploads/kartu/';
-                            if (!is_dir($uploadDir)) {
-                                mkdir($uploadDir, 0777, true);
+                        if (!in_array($ext, $allowed)) {
+                            $error = 'Format file foto jaminan harus JPG, JPEG, PNG, atau WEBP!';
+                        } elseif ($fileData['size'] > 5 * 1024 * 1024) {
+                            $error = 'Ukuran file foto jaminan maksimal 5MB!';
+                        } else {
+                            $newFileName = 'jaminan_' . time() . '_' . rand(100, 999) . '.' . $ext;
+                            $baseUploadDir = realpath(__DIR__ . '/../Assets/uploads');
+                            if (!$baseUploadDir) {
+                                $baseUploadDir = __DIR__ . '/../Assets/uploads';
+                                if (!is_dir($baseUploadDir)) {
+                                    @mkdir($baseUploadDir, 0777, true);
+                                }
                             }
-                            if (move_uploaded_file($fileTmp, $uploadDir . $newFileName)) {
+                            @chmod($baseUploadDir, 0777);
+
+                            $uploadDirJaminan = $baseUploadDir . '/jaminan/';
+                            $uploadDirKartu   = $baseUploadDir . '/kartu/';
+
+                            if (!is_dir($uploadDirJaminan)) {
+                                @mkdir($uploadDirJaminan, 0777, true);
+                            }
+                            if (!is_dir($uploadDirKartu)) {
+                                @mkdir($uploadDirKartu, 0777, true);
+                            }
+                            @chmod($uploadDirJaminan, 0777);
+                            @chmod($uploadDirKartu, 0777);
+
+                            if (move_uploaded_file($fileTmp, $uploadDirJaminan . $newFileName)) {
+                                @chmod($uploadDirJaminan . $newFileName, 0666);
                                 $foto_kartu = $newFileName;
+                                @copy($uploadDirJaminan . $newFileName, $uploadDirKartu . $newFileName);
+
+                                // 1. Simpan akun ke tabel user
+                                $userId = $this->userModel->createUser($nama, $username, $password, 'peminjam');
+
+                                // 2. Simpan profil siswa ke tabel peminjam (termasuk foto jaminan dan link userId)
+                                $this->peminjamModel->createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp, $foto_kartu, $userId);
+
+                                // 3. Catat riwayat log aktivitas
+                                if ($userId) {
+                                    $this->userModel->recordLog($userId, 'Registrasi Akun Siswa', "Pendaftaran siswa baru dengan jaminan foto: {$nama} (NIS: {$nis})");
+                                }
+
+                                header('Location: index.php?c=auth&a=login&status=registered');
+                                exit;
+                            } else {
+                                $error = 'Gagal menyimpan file foto jaminan ke server!';
                             }
                         }
                     }
-
-                    // 1. Simpan akun ke tabel user
-                    $userId = $this->userModel->createUser($nama, $username, $password, 'peminjam');
-
-                    // 2. Simpan profil siswa ke tabel peminjam
-                    $this->peminjamModel->createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp, $foto_kartu);
-
-                    // 3. Catat riwayat log aktivitas
-                    if ($userId) {
-                        $this->userModel->recordLog($userId, 'Registrasi Akun Siswa', "Pendaftaran siswa baru: {$nama} (NIS: {$nis})");
-                    }
-
-                    header('Location: index.php?c=auth&a=login&status=registered');
-                    exit;
                 } catch (Exception $e) {
                     $error = 'Terjadi kesalahan database: ' . $e->getMessage();
                 }

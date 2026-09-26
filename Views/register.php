@@ -80,8 +80,11 @@
             </div>
 
             <div class="form-group">
-                <label for="foto_kartu_pelajar" class="form-label">Foto Kartu Pelajar <span style="font-weight: 400; color: var(--text-muted);">(Opsional)</span></label>
-                <input type="file" id="foto_kartu_pelajar" name="foto_kartu_pelajar" class="form-control" accept="image/*">
+                <label for="foto_kartu_pelajar" class="form-label">Foto Jaminan (Kartu Pelajar / Identitas Siswa) <span style="color: #dc3545;">*</span></label>
+                <input type="file" id="foto_kartu_pelajar" name="foto_kartu_pelajar" class="form-control" accept="image/png, image/jpeg, image/jpg, image/webp" required>
+                <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px;">
+                    Wajib diunggah sebagai dokumen jaminan peminjaman alat (Format: JPG, JPEG, PNG, WEBP &bull; Disimpan di <code>Assets/uploads/jaminan/</code>).
+                </small>
             </div>
 
             <div class="form-group">

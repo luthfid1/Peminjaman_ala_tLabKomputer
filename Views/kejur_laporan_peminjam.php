@@ -50,17 +50,30 @@ require_once __DIR__ . '/kejur_header.php';
                 <th>Kelas</th>
                 <th>Jurusan</th>
                 <th>Nomor Telepon</th>
+                <th>Foto Jaminan</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($daftarPeminjam)): ?>
                 <tr>
-                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">
                         Tidak ada data peminjam yang sesuai dengan pencarian.
                     </td>
                 </tr>
             <?php else: ?>
-                <?php $no = 1; foreach ($daftarPeminjam as $p): ?>
+                <?php $no = 1; foreach ($daftarPeminjam as $p): 
+                    $fotoName = $p['foto_kartu_pelajar'] ?? $p['foto'] ?? '';
+                    $fotoPath = '';
+                    if (!empty($fotoName)) {
+                        if (file_exists(__DIR__ . '/../Assets/uploads/jaminan/' . $fotoName)) {
+                            $fotoPath = 'Assets/uploads/jaminan/' . $fotoName;
+                        } elseif (file_exists(__DIR__ . '/../Assets/uploads/kartu/' . $fotoName)) {
+                            $fotoPath = 'Assets/uploads/kartu/' . $fotoPath;
+                        } else {
+                            $fotoPath = 'Assets/uploads/jaminan/' . $fotoName;
+                        }
+                    }
+                ?>
                     <tr>
                         <td><?= $no++ ?></td>
                         <td>
@@ -70,6 +83,16 @@ require_once __DIR__ . '/kejur_header.php';
                         <td><?= htmlspecialchars($p['kelas'] ?? '-') ?></td>
                         <td><?= htmlspecialchars($p['jurusan'] ?? '-') ?></td>
                         <td><?= htmlspecialchars($p['no_telp'] ?? '-') ?></td>
+                        <td>
+                            <?php if (!empty($fotoPath) && !empty($fotoName)): ?>
+                                <a href="<?= htmlspecialchars($fotoPath) ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 4px 10px; border-radius: 6px; background: rgba(0, 180, 160, 0.1); color: var(--primary-teal); font-size: 11px; font-weight: 600;">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    Lihat Jaminan
+                                </a>
+                            <?php else: ?>
+                                <span style="color: var(--text-muted); font-size: 12px;">-</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>

@@ -56,9 +56,17 @@ class Peminjam {
     }
 
     public function createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp = '', $foto_kartu_pelajar = '', $id_user = null) {
+        $colFoto = 'foto_kartu_pelajar';
         try {
-            $query = "INSERT INTO " . $this->table_name . " (id_user, nama, nis, kelas, jurusan, no_telp, foto_kartu_pelajar) 
-                      VALUES (:id_user, :nama, :nis, :kelas, :jurusan, :no_telp, :foto_kartu_pelajar)";
+            $chk = $this->conn->query("SHOW COLUMNS FROM " . $this->table_name . " LIKE 'foto'");
+            if ($chk && $chk->rowCount() > 0) {
+                $colFoto = 'foto';
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $query = "INSERT INTO " . $this->table_name . " (id_user, nama, nis, kelas, jurusan, no_telp, `{$colFoto}`) 
+                      VALUES (:id_user, :nama, :nis, :kelas, :jurusan, :no_telp, :foto)";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':id_user', $id_user, PDO::PARAM_INT);
             $stmt->bindParam(':nama', $nama);
@@ -66,20 +74,20 @@ class Peminjam {
             $stmt->bindParam(':kelas', $kelas);
             $stmt->bindParam(':jurusan', $jurusan);
             $stmt->bindParam(':no_telp', $no_telp);
-            $stmt->bindParam(':foto_kartu_pelajar', $foto_kartu_pelajar);
+            $stmt->bindParam(':foto', $foto_kartu_pelajar);
             $stmt->execute();
             return $this->conn->lastInsertId();
         } catch (Exception $e) {
-            // Fallback jika kolom id_user belum tersedia
-            $query = "INSERT INTO " . $this->table_name . " (nama, nis, kelas, jurusan, no_telp, foto_kartu_pelajar) 
-                      VALUES (:nama, :nis, :kelas, :jurusan, :no_telp, :foto_kartu_pelajar)";
+            // Fallback jika kolom id_user belum tersedia di tabel lama
+            $query = "INSERT INTO " . $this->table_name . " (nama, nis, kelas, jurusan, no_telp, `{$colFoto}`) 
+                      VALUES (:nama, :nis, :kelas, :jurusan, :no_telp, :foto)";
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':nama', $nama);
             $stmt->bindParam(':nis', $nis);
             $stmt->bindParam(':kelas', $kelas);
             $stmt->bindParam(':jurusan', $jurusan);
             $stmt->bindParam(':no_telp', $no_telp);
-            $stmt->bindParam(':foto_kartu_pelajar', $foto_kartu_pelajar);
+            $stmt->bindParam(':foto', $foto_kartu_pelajar);
             $stmt->execute();
             return $this->conn->lastInsertId();
         }
