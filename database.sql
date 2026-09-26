@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `nama` VARCHAR(100) NOT NULL,
   `username` VARCHAR(50) NOT NULL UNIQUE,
   `password` VARCHAR(255) NOT NULL,
-  `role` ENUM('admin', 'pengelola', 'petugas', 'peminjam') NOT NULL DEFAULT 'peminjam',
+  `role` ENUM('admin', 'admin pengelola', 'petugas', 'peminjam') NOT NULL DEFAULT 'peminjam',
   PRIMARY KEY (`id_user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- ----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `peminjam` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_user` INT(11) DEFAULT NULL,
   `nama` VARCHAR(100) NOT NULL,
   `nis` VARCHAR(30) NOT NULL,
   `kelas` VARCHAR(20) NOT NULL,
@@ -130,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `log_aktivitas` (
 -- SEED DATA
 -- ----------------------------------------------------------
 INSERT INTO `user` (`id_user`, `nama`, `username`, `password`, `role`) VALUES
-(1, 'Admin Pengelola Lab', 'pengelola', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'pengelola'),
+(1, 'Admin Pengelola Lab', 'pengelola', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'admin pengelola'),
 (2, 'Ketua Jurusan RPL', 'kejur', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'admin'),
 (3, 'Petugas Laboran Lab Komputer', 'petugas', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'petugas'),
 (4, 'Siswa Peminjam Lab', 'siswa', '$2y$10$wT0lQn8w8a8J.lZ/B8y/8eX1Q7YQ5tFh2gCqL.N4Z6M7s4Q7kP6eS', 'peminjam')

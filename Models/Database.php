@@ -89,6 +89,11 @@ class Database {
                         $this->conn->exec("ALTER TABLE `peminjam` ADD COLUMN `id_user` INT(11) NULL AFTER `id`");
                     }
                 } catch (Exception $e) {}
+
+                try {
+                    $this->conn->exec("ALTER TABLE `user` MODIFY COLUMN `role` ENUM('admin', 'admin pengelola', 'petugas', 'peminjam') NOT NULL DEFAULT 'peminjam'");
+                    $this->conn->exec("UPDATE `user` SET `role` = 'admin pengelola' WHERE `role` = 'pengelola'");
+                } catch (Exception $e) {}
             }
         } catch (Exception $e) {
             // Lanjut jika sudah terinisialisasi

@@ -21,8 +21,8 @@ class AdminController {
         }
 
         $role = strtolower(trim($_SESSION['user']['role'] ?? ''));
-        // Admin (pengelola lab) memiliki akses penuh
-        if (!isset($_SESSION['user']) || !in_array($role, ['pengelola', 'admin'])) {
+        // Admin pengelola lab memiliki akses penuh
+        if (!isset($_SESSION['user']) || !in_array($role, ['admin pengelola', 'pengelola', 'admin'])) {
             header('Location: index.php?c=auth&a=login');
             exit;
         }

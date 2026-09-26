@@ -26,8 +26,8 @@ class KejurController {
         }
 
         $role = strtolower(trim($_SESSION['user']['role'] ?? ''));
-        // Hak akses Ketua Jurusan (role: admin) dan Pengelola (role: pengelola)
-        if (!in_array($role, ['admin', 'pengelola'])) {
+        // Hak akses Ketua Jurusan (role: admin) dan Pengelola (role: admin pengelola)
+        if (!in_array($role, ['admin', 'admin pengelola', 'pengelola'])) {
             if ($role === 'petugas') {
                 header('Location: index.php?c=petugas&a=dashboard');
                 exit;

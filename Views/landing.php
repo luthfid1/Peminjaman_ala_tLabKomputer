@@ -225,7 +225,7 @@
             </div>
             <div>
                 <p class="about-description">
-                    Admin Pengelola Lab mengelola inventaris alat lab komputer dan pengguna. Petugas Laboran memvalidasi persetujuan peminjaman dan memantau pengembalian perangkat. Ketua Jurusan memonitor laporan data sirkulasi. Siswa dapat dengan mudah meminjam perangkat untuk kebutuhan praktikum kejuruan.
+                    Siswa dapat dengan mudah meminjam perangkat untuk kebutuhan praktikum kejuruan.
                 </p>
             </div>
         </div>

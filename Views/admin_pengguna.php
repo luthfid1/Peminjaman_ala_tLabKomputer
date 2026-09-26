@@ -69,7 +69,7 @@ require_once __DIR__ . '/admin_header.php';
                 <?php $no = 1; foreach ($daftarPengguna as $u): 
                     $roleLabel = ucfirst($u['role']);
                     if ($u['role'] === 'admin') $roleLabel = 'Admin (Ketua Jurusan)';
-                    if ($u['role'] === 'pengelola') $roleLabel = 'Admin (Pengelola Lab)';
+                    if ($u['role'] === 'admin pengelola' || $u['role'] === 'pengelola') $roleLabel = 'Admin Pengelola';
                     if ($u['role'] === 'petugas') $roleLabel = 'Petugas (Laboran)';
                     if ($u['role'] === 'peminjam') $roleLabel = 'Peminjam (Siswa)';
                 ?>
@@ -83,8 +83,8 @@ require_once __DIR__ . '/admin_header.php';
                                 border-radius: 999px;
                                 font-size: 11px;
                                 font-weight: 700;
-                                background: <?= ($u['role'] === 'pengelola' || $u['role'] === 'admin') ? 'var(--primary-navy)' : 'var(--teal-bg)' ?>;
-                                color: <?= ($u['role'] === 'pengelola' || $u['role'] === 'admin') ? '#ffffff' : 'var(--teal-dark)' ?>;
+                                background: <?= ($u['role'] === 'admin pengelola' || $u['role'] === 'pengelola' || $u['role'] === 'admin') ? 'var(--primary-navy)' : 'var(--teal-bg)' ?>;
+                                color: <?= ($u['role'] === 'admin pengelola' || $u['role'] === 'pengelola' || $u['role'] === 'admin') ? '#ffffff' : 'var(--teal-dark)' ?>;
                             ">
                                 <?= htmlspecialchars($roleLabel) ?>
                             </span>
@@ -135,7 +135,7 @@ require_once __DIR__ . '/admin_header.php';
             <div class="form-group">
                 <label class="form-label">Hak Akses (Role)</label>
                 <select name="role" class="form-control" required>
-                    <option value="pengelola">Admin (Pengelola Lab)</option>
+                    <option value="admin pengelola">Admin Pengelola</option>
                     <option value="admin">Admin (Ketua Jurusan)</option>
                     <option value="petugas">Petugas (Laboran)</option>
                     <option value="peminjam">Peminjam (Siswa)</option>
@@ -178,7 +178,7 @@ require_once __DIR__ . '/admin_header.php';
             <div class="form-group">
                 <label class="form-label">Hak Akses (Role)</label>
                 <select name="role" id="edit_user_role" class="form-control" required>
-                    <option value="pengelola">Admin (Pengelola Lab)</option>
+                    <option value="admin pengelola">Admin Pengelola</option>
                     <option value="admin">Admin (Ketua Jurusan)</option>
                     <option value="petugas">Petugas (Laboran)</option>
                     <option value="peminjam">Peminjam (Siswa)</option>

@@ -51,7 +51,7 @@
         <form method="POST" action="index.php?c=auth&a=login">
             <div class="form-group">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control" placeholder="pengelola / kejur / petugas / siswa" required autofocus value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
+                <input type="text" id="username" name="username" class="form-control" placeholder="Masukan Username" required autofocus value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
             </div>
 
             <div class="form-group">
