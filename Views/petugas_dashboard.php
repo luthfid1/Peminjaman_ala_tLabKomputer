@@ -22,11 +22,11 @@ require_once __DIR__ . '/petugas_header.php';
 
 <!-- 3 KARTU USE CASE PETUGAS -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 28px;">
-    <!-- USE CASE 1: MENYETUJUI PEMINJAMAN -->
+    <!-- KARTU 1: MENYETUJUI PEMINJAMAN -->
     <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid #f59e0b;">
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span style="font-size: 11px; font-weight: 700; color: #b45309; text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 01</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Menyetujui Peminjaman</h3>
                 <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -34,7 +34,6 @@ require_once __DIR__ . '/petugas_header.php';
                     </svg>
                 </div>
             </div>
-            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Menyetujui Peminjaman</h3>
             <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Verifikasi dan beri persetujuan permohonan pinjam alat lab dari siswa.</p>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
@@ -48,11 +47,11 @@ require_once __DIR__ . '/petugas_header.php';
         </div>
     </div>
 
-    <!-- USE CASE 2: MEMANTAU PENGEMBALIAN -->
+    <!-- KARTU 2: MEMANTAU PENGEMBALIAN -->
     <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary-teal);">
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span style="font-size: 11px; font-weight: 700; color: var(--teal-dark); text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 02</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Memantau Pengembalian</h3>
                 <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(20, 184, 166, 0.12); color: var(--teal-dark); display: flex; align-items: center; justify-content: center;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <polyline points="1 4 1 10 7 10"></polyline>
@@ -60,7 +59,6 @@ require_once __DIR__ . '/petugas_header.php';
                     </svg>
                 </div>
             </div>
-            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Memantau Pengembalian</h3>
             <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Pantau tenggat waktu, catat pengembalian alat, denda, dan verifikasi kondisi fisik.</p>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
@@ -74,11 +72,11 @@ require_once __DIR__ . '/petugas_header.php';
         </div>
     </div>
 
-    <!-- USE CASE 3: MENCETAK LAPORAN -->
+    <!-- KARTU 3: MENCETAK LAPORAN -->
     <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); border-left: 4px solid #0284c7;">
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span style="font-size: 11px; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px;">USE CASE 03</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Mencetak Laporan</h3>
                 <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(2, 132, 199, 0.12); color: #0284c7; display: flex; align-items: center; justify-content: center;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -86,7 +84,6 @@ require_once __DIR__ . '/petugas_header.php';
                     </svg>
                 </div>
             </div>
-            <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700; color: var(--primary-navy);">Mencetak Laporan</h3>
             <p style="margin: 0 0 16px 0; font-size: 12px; color: var(--text-muted);">Cetak arsip fisik berkas sirkulasi peminjaman & pengembalian laboratorium.</p>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
