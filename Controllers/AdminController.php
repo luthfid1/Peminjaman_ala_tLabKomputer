@@ -346,14 +346,88 @@ class AdminController {
     public function tambah_peminjaman() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id_peminjam             = (int)($_POST['id_peminjam'] ?? 0);
+            $nama                    = trim($_POST['nama'] ?? '');
+            $nis                     = trim($_POST['nis'] ?? '');
+            $kelas                   = trim($_POST['kelas'] ?? '');
+            $jurusan                 = trim($_POST['jurusan'] ?? 'Rekayasa Perangkat Lunak');
+            $no_telp                 = trim($_POST['no_telp'] ?? '');
             $id_alat                 = (int)($_POST['id_alat'] ?? 0);
             $jumlah                  = (int)($_POST['jumlah'] ?? 1);
             $waktu_pinjam            = trim($_POST['waktu_pinjam'] ?? date('H:i:s'));
             $waktu_rencana_kembali   = trim($_POST['waktu_rencana_kembali'] ?? date('H:i:s', strtotime('+2 hours')));
-            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Kebutuhan untuk Pembelajaran di Kelas');
             $keperluan               = trim($_POST['keperluan'] ?? '');
             $status                  = trim($_POST['status'] ?? 'disetujui');
 
+            // 1. Handle upload foto jaminan kartu identitas siswa jika diunggah
+            $foto_kartu = '';
+            $fileData = $_FILES['foto_kartu_pelajar'] ?? $_FILES['foto'] ?? null;
+            if ($fileData && !empty($fileData['tmp_name']) && $fileData['error'] === UPLOAD_ERR_OK) {
+                $ext = strtolower(pathinfo($fileData['name'], PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+                if (in_array($ext, $allowed)) {
+                    $newFileName = 'jaminan_' . time() . '_' . rand(100, 999) . '.' . $ext;
+                    $baseUploadDir = realpath(__DIR__ . '/../Assets/uploads');
+                    if (!$baseUploadDir) {
+                        $baseUploadDir = __DIR__ . '/../Assets/uploads';
+                        @mkdir($baseUploadDir, 0777, true);
+                    }
+                    $dirJaminan = $baseUploadDir . '/jaminan/';
+                    $dirKartu   = $baseUploadDir . '/kartu/';
+                    @mkdir($dirJaminan, 0777, true);
+                    @mkdir($dirKartu, 0777, true);
+                    @chmod($dirJaminan, 0777);
+                    @chmod($dirKartu, 0777);
+
+                    if (move_uploaded_file($fileData['tmp_name'], $dirJaminan . $newFileName)) {
+                        @chmod($dirJaminan . $newFileName, 0666);
+                        @copy($dirJaminan . $newFileName, $dirKartu . $newFileName);
+                        $foto_kartu = $newFileName;
+                    }
+                }
+            }
+
+            // 2. Jika admin menginput data peminjam secara manual (seperti register)
+            if (!empty($nama)) {
+                $exist = null;
+                if (!empty($nis)) {
+                    $exist = $this->peminjamModel->getPeminjamByNis($nis);
+                }
+                if (!$exist) {
+                    $exist = $this->peminjamModel->getPeminjamByNama($nama);
+                }
+
+                if ($exist) {
+                    $id_peminjam = (int)$exist['id'];
+                    $fotoUpdate = !empty($foto_kartu) ? $foto_kartu : null;
+                    $this->peminjamModel->updatePeminjam(
+                        $id_peminjam,
+                        $nama,
+                        !empty($nis) ? $nis : $exist['nis'],
+                        !empty($kelas) ? $kelas : $exist['kelas'],
+                        !empty($jurusan) ? $jurusan : $exist['jurusan'],
+                        !empty($no_telp) ? $no_telp : $exist['no_telp'],
+                        $fotoUpdate
+                    );
+                } else {
+                    $id_peminjam = (int)$this->peminjamModel->createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp, $foto_kartu);
+                }
+            } elseif ($id_peminjam > 0 && !empty($foto_kartu)) {
+                $existingPmj = $this->peminjamModel->getPeminjamById($id_peminjam);
+                if ($existingPmj) {
+                    $this->peminjamModel->updatePeminjam(
+                        $id_peminjam,
+                        $existingPmj['nama'],
+                        $existingPmj['nis'],
+                        $existingPmj['kelas'],
+                        $existingPmj['jurusan'],
+                        !empty($no_telp) ? $no_telp : $existingPmj['no_telp'],
+                        $foto_kartu
+                    );
+                }
+            }
+
+            // 3. Simpan transaksi peminjaman alat lab
             if ($id_peminjam > 0 && $id_alat > 0 && $jumlah > 0) {
                 try {
                     $newId = $this->peminjamanModel->createPeminjaman(
@@ -367,7 +441,8 @@ class AdminController {
                         $jumlah,
                         $status
                     );
-                    $this->userModel->recordLog($this->getUserId(), 'Mencatat Peminjaman', "Peminjaman ID #{$newId} (Status: {$status})");
+                    $namaLabel = !empty($nama) ? $nama : "ID #{$id_peminjam}";
+                    $this->userModel->recordLog($this->getUserId(), 'Mencatat Peminjaman', "Peminjaman ID #{$newId} (Peminjam: {$namaLabel})");
                     header('Location: index.php?c=admin&a=peminjaman&status=added');
                     exit;
                 } catch (Exception $e) {
@@ -388,7 +463,7 @@ class AdminController {
             $jumlah                  = (int)($_POST['jumlah'] ?? 1);
             $waktu_pinjam            = trim($_POST['waktu_pinjam'] ?? '');
             $waktu_rencana_kembali   = trim($_POST['waktu_rencana_kembali'] ?? '');
-            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $jenis_peminjaman        = trim($_POST['jenis_peminjaman'] ?? 'Kebutuhan untuk Pembelajaran di Kelas');
             $keperluan               = trim($_POST['keperluan'] ?? '');
             $status                  = trim($_POST['status'] ?? 'menunggu');
 

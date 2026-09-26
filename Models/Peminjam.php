@@ -55,6 +55,14 @@ class Peminjam {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function getPeminjamByNis($nis) {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE nis = :nis ORDER BY id DESC LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':nis', $nis);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function createPeminjam($nama, $nis, $kelas, $jurusan, $no_telp = '', $foto_kartu_pelajar = '', $id_user = null) {
         $colFoto = 'foto_kartu_pelajar';
         try {

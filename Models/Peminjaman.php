@@ -37,7 +37,7 @@ class Peminjaman {
 
     public function getAllPeminjaman($keyword = null, $statusFilter = null) {
         $query = "SELECT p.*, 
-                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp,
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp, pm.foto_kartu_pelajar,
                          u.nama as nama_petugas,
                          dp.id_alat, dp.jumlah,
                          a.nama_alat, a.kode as kode_alat,
@@ -81,7 +81,7 @@ class Peminjaman {
 
     public function getPeminjamanById($id) {
         $query = "SELECT p.*, 
-                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp,
+                         pm.nama as nama_peminjam, pm.nis, pm.kelas, pm.jurusan, pm.no_telp, pm.foto_kartu_pelajar,
                          u.nama as nama_petugas,
                          dp.id_alat, dp.jumlah,
                          a.nama_alat, a.kode as kode_alat,

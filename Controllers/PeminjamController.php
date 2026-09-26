@@ -152,7 +152,7 @@ class PeminjamController {
             $jumlah                = max(1, (int)($_POST['jumlah'] ?? 1));
             $waktu_pinjam          = trim($_POST['waktu_pinjam'] ?? date('H:i'));
             $waktu_rencana_kembali = trim($_POST['waktu_rencana_kembali'] ?? date('H:i', strtotime('+2 hours')));
-            $jenis_peminjaman      = trim($_POST['jenis_peminjaman'] ?? 'Praktek Lab');
+            $jenis_peminjaman      = trim($_POST['jenis_peminjaman'] ?? 'Kebutuhan untuk Pembelajaran di Kelas');
             $keperluan             = trim($_POST['keperluan'] ?? '');
 
             if ($id_alat > 0) {

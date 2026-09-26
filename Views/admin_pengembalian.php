@@ -12,7 +12,7 @@ require_once __DIR__ . '/admin_header.php';
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahPengembalian')">
         + Catat Pengembalian
-    </button>
+    </button>   
 </div>
 
 <!-- ALERTS -->

@@ -155,12 +155,43 @@ require_once __DIR__ . '/peminjam_header.php';
 
             <div class="form-row" style="display: flex; gap: 16px;">
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Waktu Mulai Pinjam (WIB)</label>
-                    <input type="time" name="waktu_pinjam" class="form-control" value="<?= date('H:i') ?>" required>
+                    <label class="form-label">Waktu Mulai Pinjam</label>
+                    <select name="waktu_pinjam" class="form-control" required>
+                        <option value="06:30" selected>06.30 (Jam Ke-1)</option>
+                        <option value="07:10">07.10 (Jam Ke-2)</option>
+                        <option value="07:50">07.50 (Jam Ke-3)</option>
+                        <option value="08:30">08.30 (Jam Ke-4)</option>
+                        <option value="09:25">09.25 (Jam Ke-5)</option>
+                        <option value="10:05">10.05 (Jam Ke-6)</option>
+                        <option value="10:45">10.45 (Jam Ke-7)</option>
+                        <option value="11:25">11.25 (Jam Ke-8)</option>
+                        <option value="12:35">12.35 (Jam Ke-9)</option>
+                        <option value="13:15">13.15 (Jam Ke-10)</option>
+                        <option value="13:55">13.55 (Jam Ke-11)</option>
+                        <option value="14:35">14.35</option>
+                        <option value="15:15">15.15</option>
+                        <option value="16:00">16.00</option>
+                    </select>
                 </div>
                 <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Rencana Pengembalian (WIB)</label>
-                    <input type="time" name="waktu_rencana_kembali" class="form-control" value="<?= date('H:i', strtotime('+2 hours')) ?>" required>
+                    <label class="form-label">Rencana Pengembalian</label>
+                    <select name="waktu_rencana_kembali" class="form-control" required>
+                        <option value="07:10" selected>07.10 (Jam Ke-2)</option>
+                        <option value="07:50">07.50 (Jam Ke-3)</option>
+                        <option value="08:30">08.30 (Jam Ke-4)</option>
+                        <option value="09:10">09.10 (Istirahat)</option>
+                        <option value="10:05">10.05 (Jam Ke-6)</option>
+                        <option value="10:45">10.45 (Jam Ke-7)</option>
+                        <option value="11:25">11.25 (Jam Ke-8)</option>
+                        <option value="12:05">12.05 (Ishoma)</option>
+                        <option value="13:15">13.15 (Jam Ke-10)</option>
+                        <option value="13:55">13.55 (Jam Ke-11)</option>
+                        <option value="14:35">14.35 (Selesai KBM)</option>
+                        <option value="15:15">15.15</option>
+                        <option value="16:00">16.00</option>
+                        <option value="16:30">16.30</option>
+                        <option value="17:00">17.00 (Batas Maksimal Sekolah)</option>
+                    </select>
                 </div>
             </div>
 
@@ -172,10 +203,9 @@ require_once __DIR__ . '/peminjam_header.php';
                 <div class="form-group" style="flex: 2;">
                     <label class="form-label">Jenis Peminjaman</label>
                     <select name="jenis_peminjaman" class="form-control" required>
-                        <option value="Praktek Lab">Praktek Jam Pelajaran Lab</option>
-                        <option value="Tugas Projek">Pengerjaan Tugas / Projek Sekolah</option>
-                        <option value="Ujian Praktik">Ujian Praktik Kompetensi (UKK)</option>
-                        <option value="Kegiatan Ekskul">Kegiatan Ekstrakurikuler Komputer</option>
+                        <option value="Kebutuhan Rapat">Kebutuhan Rapat</option>
+                        <option value="Kebutuhan Kegiatan">Kebutuhan Kegiatan</option>
+                        <option value="Kebutuhan untuk Pembelajaran di Kelas">Kebutuhan untuk Pembelajaran di Kelas</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -183,7 +213,7 @@ require_once __DIR__ . '/peminjam_header.php';
 
             <div class="form-group">
                 <label class="form-label">Keperluan / Keterangan</label>
-                <textarea name="keperluan" class="form-control" rows="3" placeholder="Contoh: Praktikum konfigurasi LAN dan routing di Lab RPL" required></textarea>
+                <textarea name="keperluan" class="form-control" rows="3" placeholder="Contoh: untuk kebutuhan presentasi" required></textarea>
             </div>
 
             <div class="modal-footer">

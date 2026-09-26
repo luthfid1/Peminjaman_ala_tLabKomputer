@@ -7,11 +7,11 @@ require_once __DIR__ . '/admin_header.php';
 <div class="admin-header-row">
     <div>
         <span class="admin-date-label">AKSES & OTORISASI</span>
-        <h1 class="admin-title">Kelola Data Pengguna</h1>
-        <p class="admin-subtitle">Atur akun Pengelola Lab, Ketua Jurusan, Petugas Laboran, dan Siswa Peminjam.</p>
+        <h1 class="admin-title">Kelola Data Anggota</h1>
+        <p class="admin-subtitle">Semua Data Anggota Terdaftar di Sistem.</p>
     </div>
     <button type="button" class="btn-add-instrument" onclick="openModal('modalTambahUser')">
-        + Tambah Pengguna
+        + Tambah Anggota
     </button>
 </div>
 
