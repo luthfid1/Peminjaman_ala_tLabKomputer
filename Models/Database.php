@@ -94,6 +94,21 @@ class Database {
                     $this->conn->exec("ALTER TABLE `user` MODIFY COLUMN `role` ENUM('admin', 'admin pengelola', 'petugas', 'peminjam') NOT NULL DEFAULT 'peminjam'");
                     $this->conn->exec("UPDATE `user` SET `role` = 'admin pengelola' WHERE `role` = 'pengelola'");
                 } catch (Exception $e) {}
+
+                try {
+                    $this->conn->exec("CREATE TABLE IF NOT EXISTS `notifikasi` (
+                        `id` INT(11) NOT NULL AUTO_INCREMENT,
+                        `id_peminjam` INT(11) NOT NULL,
+                        `id_peminjaman` INT(11) NOT NULL,
+                        `judul` VARCHAR(100) NOT NULL,
+                        `pesan` TEXT NOT NULL,
+                        `status` ENUM('belum_dibaca', 'dibaca') NOT NULL DEFAULT 'belum_dibaca',
+                        `waktu` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (`id`),
+                        KEY `fk_notif_peminjam` (`id_peminjam`),
+                        KEY `fk_notif_peminjaman` (`id_peminjaman`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                } catch (Exception $e) {}
             }
         } catch (Exception $e) {
             // Lanjut jika sudah terinisialisasi

@@ -128,6 +128,22 @@ CREATE TABLE IF NOT EXISTS `log_aktivitas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------
+-- 9. Tabel: notifikasi (Pengingat Pengembalian & Notifikasi Sistem)
+-- ----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `notifikasi` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `id_peminjam` INT(11) NOT NULL,
+  `id_peminjaman` INT(11) NOT NULL,
+  `judul` VARCHAR(100) NOT NULL,
+  `pesan` TEXT NOT NULL,
+  `status` ENUM('belum_dibaca', 'dibaca') NOT NULL DEFAULT 'belum_dibaca',
+  `waktu` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_notif_peminjam` (`id_peminjam`),
+  KEY `fk_notif_peminjaman` (`id_peminjaman`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------------------------------------
 -- SEED DATA
 -- ----------------------------------------------------------
 INSERT INTO `user` (`id_user`, `nama`, `username`, `password`, `role`) VALUES

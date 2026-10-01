@@ -150,6 +150,25 @@ require_once __DIR__ . '/petugas_header.php';
                                 <a href="index.php?c=petugas&a=serahkan_alat&id=<?= $p['id'] ?>" class="btn-action-edit" style="background: #0284c7; color: white;" onclick="return confirm('Konfirmasi penyerahan fisik alat kepada siswa?')">
                                     Serahkan Fisik
                                 </a>
+                            <?php elseif ($status === 'dipinjam'): 
+                                $alreadyReminded = isset($notifikasiModel) && $notifikasiModel->hasUnreadReminder($p['id']);
+                            ?>
+                                <a href="index.php?c=petugas&a=ingatkan_kembali&id=<?= $p['id'] ?>" class="btn-action-edit" style="background: #f59e0b; color: white;" onclick="return confirm('Kirim notifikasi pengingat pengembalian kepada siswa ini?')">
+                                    🔔 Kirim Pengingat
+                                </a>
+                                <?php if ($alreadyReminded): ?>
+                                    <div style="font-size: 11px; color: #b45309; font-weight: 600; margin-top: 3px;">✓ Notif Terkirim</div>
+                                <?php endif; ?>
+                                <?php 
+                                    $phone = preg_replace('/[^0-9]/', '', $p['no_telp'] ?? '');
+                                    if (substr($phone, 0, 1) === '0') $phone = '62' . substr($phone, 1);
+                                    if (!empty($phone)):
+                                        $waMsg = urlencode("Halo {$p['nama_peminjam']}, mohon segera mengembalikan perangkat {$p['nama_alat']} (Kode: {$p['kode_peminjaman']}) ke Laboratorium Komputer. Terima kasih.");
+                                ?>
+                                    <a href="https://wa.me/<?= $phone ?>?text=<?= $waMsg ?>" target="_blank" style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #16a34a; color: white; text-decoration: none; font-weight: 600; margin-top: 4px;">
+                                        WhatsApp Siswa
+                                    </a>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <span style="font-size: 12px; color: var(--text-muted);">-</span>
                             <?php endif; ?>

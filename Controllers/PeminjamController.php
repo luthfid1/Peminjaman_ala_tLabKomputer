@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/kategori.php';
 require_once __DIR__ . '/../models/peminjaman.php';
 require_once __DIR__ . '/../models/pengembalian.php';
 require_once __DIR__ . '/../models/peminjam.php';
+require_once __DIR__ . '/../models/notifikasi.php';
 
 class PeminjamController {
     private $userModel;
@@ -14,6 +15,7 @@ class PeminjamController {
     private $peminjamanModel;
     private $pengembalianModel;
     private $peminjamProfileModel;
+    private $notifikasiModel;
 
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
@@ -45,6 +47,7 @@ class PeminjamController {
         $this->peminjamanModel      = new Peminjaman();
         $this->pengembalianModel    = new Pengembalian();
         $this->peminjamProfileModel = new Peminjam();
+        $this->notifikasiModel      = new Notifikasi();
     }
 
     private function getUserId() {
@@ -130,13 +133,16 @@ class PeminjamController {
         if (isset($_GET['status'])) {
             if ($_GET['status'] === 'requested') $message = 'Pengajuan peminjaman alat berhasil diajukan! Menunggu persetujuan petugas lab.';
             if ($_GET['status'] === 'cancelled') $message = 'Permohonan peminjaman berhasil dibatalkan.';
+            if ($_GET['status'] === 'returned') $message = 'Alat laboratorium berhasil dikembalikan! Terima kasih telah menjaga fasilitas lab dengan baik.';
             if ($_GET['status'] === 'stok_kurang') $error = 'Stok alat yang diminta tidak mencukupi atau sedang kosong!';
             if ($_GET['status'] === 'waktu_invalid') $error = 'Waktu rencana kembali tidak boleh sama atau mendahului waktu pinjam!';
-            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan sistem saat memproses peminjaman.';
+            if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan sistem saat memproses transaksi.';
         }
 
         $daftarPeminjaman = $this->peminjamanModel->getPeminjamanByPeminjamId($idPeminjam, $keyword, $statusFilter);
         $daftarAlat = $this->alatModel->getAllAlat();
+        $notifikasiBelumDibaca = $this->notifikasiModel->getNotifikasiByPeminjam($idPeminjam, true);
+        $remindedLoanIds = $this->notifikasiModel->getActiveReminderLoanIds($idPeminjam);
 
         require_once __DIR__ . '/../views/peminjam_peminjaman.php';
     }
@@ -228,7 +234,47 @@ class PeminjamController {
     }
 
     // ==========================================
-    // 6. RIWAYAT PENGEMBALIAN SAYA
+    // 6. KEMBALIKAN ALAT LAB
+    // ==========================================
+    public function kembalikan_alat() {
+        $id = (int)($_POST['id_peminjaman'] ?? $_GET['id'] ?? 0);
+        $waktu_kembali = trim($_POST['waktu_kembali'] ?? date('H:i'));
+        $kondisi_kembali = trim($_POST['kondisi_kembali'] ?? 'Baik');
+        $profile = $this->getPeminjamProfile();
+        $idPeminjam = (int)$profile['id'];
+
+        if (strlen($waktu_kembali) === 5) $waktu_kembali .= ':00';
+
+        if ($id > 0) {
+            try {
+                $pmj = $this->peminjamanModel->getPeminjamanById($id);
+                if ($pmj && (int)$pmj['id_peminjam'] === $idPeminjam && in_array(strtolower($pmj['status']), ['dipinjam', 'disetujui'])) {
+                    // Simpan data pengembalian & pulihkan stok alat
+                    $denda = 0;
+                    $this->pengembalianModel->createPengembalian($id, $waktu_kembali, $kondisi_kembali, $denda, $this->getUserId());
+                    
+                    // Tandai notifikasi terkait sebagai dibaca
+                    $this->notifikasiModel->markAsReadByPeminjaman($id);
+
+                    $this->userModel->recordLog(
+                        $this->getUserId(),
+                        'Mengembalikan Alat Lab',
+                        "Siswa mengembalikan perangkat #{$pmj['kode_peminjaman']} ({$pmj['nama_alat']})"
+                    );
+                    header('Location: index.php?c=peminjam&a=peminjaman&status=returned');
+                    exit;
+                }
+            } catch (Exception $e) {
+                header('Location: index.php?c=peminjam&a=peminjaman&status=error');
+                exit;
+            }
+        }
+        header('Location: index.php?c=peminjam&a=peminjaman');
+        exit;
+    }
+
+    // ==========================================
+    // 7. RIWAYAT PENGEMBALIAN SAYA
     // ==========================================
     public function pengembalian() {
         $profile = $this->getPeminjamProfile();

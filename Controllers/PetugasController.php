@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/alat.php';
 require_once __DIR__ . '/../models/kategori.php';
 require_once __DIR__ . '/../models/peminjaman.php';
 require_once __DIR__ . '/../models/pengembalian.php';
+require_once __DIR__ . '/../models/notifikasi.php';
 
 class PetugasController {
     private $userModel;
@@ -12,6 +13,7 @@ class PetugasController {
     private $kategoriModel;
     private $peminjamanModel;
     private $pengembalianModel;
+    private $notifikasiModel;
 
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
@@ -42,6 +44,7 @@ class PetugasController {
         $this->kategoriModel     = new Kategori();
         $this->peminjamanModel   = new Peminjaman();
         $this->pengembalianModel = new Pengembalian();
+        $this->notifikasiModel   = new Notifikasi();
     }
 
     private function getUserId() {
@@ -81,10 +84,12 @@ class PetugasController {
             if ($_GET['status'] === 'approved') $message = 'Permohonan peminjaman berhasil disetujui.';
             if ($_GET['status'] === 'rejected') $message = 'Permohonan peminjaman telah ditolak.';
             if ($_GET['status'] === 'handed') $message = 'Alat laboratorium telah diserahkan kepada siswa.';
+            if ($_GET['status'] === 'reminded') $message = 'Notifikasi pengingat pengembalian berhasil dikirimkan kepada siswa.';
             if ($_GET['status'] === 'error') $error = 'Terjadi kesalahan sistem saat memproses permohonan.';
         }
 
         $daftarPeminjaman = $this->peminjamanModel->getAllPeminjaman($keyword, $statusFilter);
+        $notifikasiModel = $this->notifikasiModel;
 
         require_once __DIR__ . '/../views/petugas_peminjaman.php';
     }
@@ -150,6 +155,36 @@ class PetugasController {
                         "Alat untuk peminjaman #{$pmj['kode_peminjaman']} telah diserahkan fisik kepada siswa"
                     );
                     header('Location: index.php?c=petugas&a=peminjaman&status=handed');
+                    exit;
+                }
+            } catch (Exception $e) {
+                header('Location: index.php?c=petugas&a=peminjaman&status=error');
+                exit;
+            }
+        }
+        header('Location: index.php?c=petugas&a=peminjaman');
+        exit;
+    }
+
+    public function ingatkan_kembali() {
+        $id = (int)($_GET['id'] ?? 0);
+        if ($id > 0) {
+            try {
+                $pmj = $this->peminjamanModel->getPeminjamanById($id);
+                if ($pmj && in_array(strtolower($pmj['status']), ['dipinjam', 'disetujui'])) {
+                    $idPeminjam = (int)$pmj['id_peminjam'];
+                    $namaAlat = $pmj['nama_alat'] ?? 'Perangkat Lab';
+                    $kodePmj = $pmj['kode_peminjaman'] ?? "-";
+                    $judul = "Peringatan Pengembalian Alat Lab";
+                    $pesan = "Petugas Lab meminta Anda untuk segera mengembalikan perangkat {$namaAlat} (Kode: {$kodePmj}) ke ruang laboratorium komputer.";
+
+                    $this->notifikasiModel->createNotifikasi($idPeminjam, $id, $judul, $pesan);
+                    $this->userModel->recordLog(
+                        $this->getUserId(),
+                        'Kirim Pengingat Pengembalian',
+                        "Petugas mengirim notifikasi pengembalian alat #{$kodePmj} kepada siswa {$pmj['nama_peminjam']}"
+                    );
+                    header('Location: index.php?c=petugas&a=peminjaman&status=reminded');
                     exit;
                 }
             } catch (Exception $e) {
