@@ -34,15 +34,21 @@
         <?php endif; ?>
 
         <!-- FORM REGISTER -->
-        <form method="POST" action="index.php?c=auth&a=register" enctype="multipart/form-data">
+        <form method="POST" action="index.php?c=auth&a=register">
             <div class="form-group">
                 <label for="nama" class="form-label">Nama Lengkap Siswa</label>
                 <input type="text" id="nama" name="nama" class="form-control" placeholder="Contoh: Muhammad Rayhan" required autofocus value="<?= htmlspecialchars($_POST['nama'] ?? '') ?>">
             </div>
 
-            <div class="form-group">
-                <label for="nis" class="form-label">NIS (Nomor Induk Siswa)</label>
-                <input type="text" id="nis" name="nis" class="form-control" placeholder="Contoh: 10238495" required value="<?= htmlspecialchars($_POST['nis'] ?? '') ?>">
+            <div class="form-row" style="display: flex; gap: 14px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="nis" class="form-label">NIS (Nomor Induk Siswa)</label>
+                    <input type="text" id="nis" name="nis" class="form-control" placeholder="Contoh: 10238495" required value="<?= htmlspecialchars($_POST['nis'] ?? '') ?>">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="no_telp" class="form-label">No. HP / WhatsApp</label>
+                    <input type="text" id="no_telp" name="no_telp" class="form-control" placeholder="Contoh: 081234567890" value="<?= htmlspecialchars($_POST['no_telp'] ?? '') ?>">
+                </div>
             </div>
 
             <div class="form-row" style="display: flex; gap: 14px;">
@@ -72,19 +78,6 @@
                 
                     </datalist>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="no_telp" class="form-label">No. HP / WhatsApp</label>
-                <input type="text" id="no_telp" name="no_telp" class="form-control" placeholder="Contoh: 081234567890" value="<?= htmlspecialchars($_POST['no_telp'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-                <label for="foto_kartu_pelajar" class="form-label">Foto Jaminan (Kartu Pelajar / Identitas Siswa) <span style="color: #dc3545;">*</span></label>
-                <input type="file" id="foto_kartu_pelajar" name="foto_kartu_pelajar" class="form-control" accept="image/png, image/jpeg, image/jpg, image/webp" required>
-                <small style="display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px;">
-                    Wajib diunggah sebagai dokumen jaminan peminjaman alat (Format: JPG, JPEG, PNG, WEBP &bull; Disimpan di <code>Assets/uploads/jaminan/</code>).
-                </small>
             </div>
 
             <div class="form-group">
